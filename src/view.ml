@@ -108,7 +108,7 @@ and calculation_view part quantity production_map =
 let view model =
   div [class' "col-lg-6 offset-lg-3"]
     [
-      h1 [] [ text "Factory Assistant" ];
+      h1 [ class' "text-center" ] [ text "Factory Assistant" ];
       form_view model;
       calculation_view model.part model.number model.production_map;
     ]
