@@ -2,26 +2,26 @@ open Types
 
 let encode_part =
   function
-  | IronIngot -> "iron_ingot"
-  | CopperIngot -> "copper_ingot"
+  | IronIngot -> "Iron Ingot"
+  | CopperIngot -> "Copper Ingot"
 
-  | IronPlate -> "iron_plate"
-  | IronRod -> "iron_rod"
-  | Wire -> "wire"
-  | Cable -> "cable"
-  | Concrete -> "concrete"
-  | Screw -> "screw"
-  | SteelBeam -> "steel_beam"
-  | SteelPipe -> "steel_pipe"
+  | IronPlate -> "Iron Plate"
+  | IronRod -> "Iron Rod"
+  | Wire -> "Wire"
+  | Cable -> "Cable"
+  | Concrete -> "Concrete"
+  | Screw -> "Screw"
+  | SteelBeam -> "Steel Beam"
+  | SteelPipe -> "Steel Pipe"
 
-  | ReinforcedIronPlate -> "reinforced_iron_plate"
-  | Rotor -> "rotor"
-  | ModularFrame -> "modular_frame"
-  | EncasedIndustrialBeam -> "encased_industrial_beam"
-  | Stator -> "stator"
-  | Motor -> "motor"
+  | ReinforcedIronPlate -> "Reinforced Iron Plate"
+  | Rotor -> "Rotor"
+  | ModularFrame -> "Modular Frame"
+  | EncasedIndustrialBeam -> "Encased Industrial Beam"
+  | Stator -> "Stator"
+  | Motor -> "Motor"
 
-  | SteelIngot -> "steel_ingot"
+  | SteelIngot -> "Steel Ingot"
 
 let encode_building =
   function

@@ -2,25 +2,25 @@ open Types
 
 let decode_part =
   function
-  | "iron_ingot" -> IronIngot
-  | "copper_ingot" -> CopperIngot
+  | "Iron Ingot" -> IronIngot
+  | "Copper Ingot" -> CopperIngot
 
-  | "iron_plate" -> IronPlate
-  | "iron_rod" -> IronRod
-  | "wire" -> Wire
-  | "cable" -> Cable
-  | "concrete" -> Concrete
-  | "screw" -> Screw
-  | "steel_beam" -> SteelBeam
-  | "steel_pipe" -> SteelPipe
+  | "Iron Plate" -> IronPlate
+  | "Iron Rod" -> IronRod
+  | "Wire" -> Wire
+  | "Cable" -> Cable
+  | "Concrete" -> Concrete
+  | "Screw" -> Screw
+  | "Steel Beam" -> SteelBeam
+  | "Steel Pipe" -> SteelPipe
 
-  | "reinforced_iron_plate" -> ReinforcedIronPlate
-  | "rotor" -> Rotor
-  | "modular_frame" -> ModularFrame
-  | "encased_industrial_beam" -> EncasedIndustrialBeam
-  | "stator" -> Stator
-  | "motor" -> Motor
+  | "Reinforced Iron Plate" -> ReinforcedIronPlate
+  | "Rotor" -> Rotor
+  | "Modular Frame" -> ModularFrame
+  | "Encased Industrial Beam" -> EncasedIndustrialBeam
+  | "Stator" -> Stator
+  | "Motor" -> Motor
 
-  | "steel_ingot" -> SteelIngot
+  | "Steel Ingot" -> SteelIngot
 
   | _ -> assert false

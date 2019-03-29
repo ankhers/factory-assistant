@@ -7,6 +7,7 @@
     "build:bsb": "bsb -make-world -theme basic-reason",
     "build:js": "webpack",
     "build": "run-s build:bsb build:js",
+    "build_prod": "webpack --config prod.config.js",
     "watch:bsb": "bsb -make-world -w -theme basic-reason",
     "watch:js": "webpack-dev-server",
     "watch": "run-p watch:bsb watch:js",
