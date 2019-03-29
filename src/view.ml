@@ -9,6 +9,8 @@ let view_button title msg = button [onClick msg] [text title]
 
 let view_option v = option' [ value v ] [ text v ]
 
+let number_to_locale_string: (float -> string) = [%raw fun num -> "return num.toLocaleString()"]
+
 let form_view model =
   div []
     [
@@ -76,7 +78,7 @@ let output_view production part quantity =
   div []
     [
       text (String.concat " " [
-          Js.Float.toString quantity;
+          number_to_locale_string quantity;
           encode_building production.building;
           "-";
           encode_part part;
