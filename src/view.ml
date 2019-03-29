@@ -58,7 +58,7 @@ let form_view model =
         ];
       div [ class' "form-group" ]
         [
-          label [ for' "quantity" ] [ text "Quantity" ];
+          label [ for' "quantity" ] [ text "Parts Per Minute" ];
           input'
             [
               onInput (fun s -> ChangeNumber (float_of_string s));
