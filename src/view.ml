@@ -67,11 +67,12 @@ let form_view model =
 let output_view model =
   div []
     [
-
+      text (string_of_int model.production.output)
     ]
 
 let input_view model =
-  div [] []
+  div []
+    (List.map (fun (part, quantity) -> [text (encode_part part); text " "; text (string_of_int quantity); br []]) model.production.input |> List.concat)
 
 let calculation_view model =
   div []
