@@ -56,29 +56,47 @@ let form_view model =
       label [ for' "quantity" ] [ text "Quantity" ];
       input'
         [
-          onInput (fun s -> ChangeNumber (int_of_string s));
+          onInput (fun s -> ChangeNumber (float_of_string s));
           id "quantity";
           type' "number";
-          value (string_of_int model.number)
+          value (Js.Float.toString model.number)
         ] [];
-
+      br [];
+      text (String.concat " " ["Max output per minute per building"; Js.Float.toString model.production.output]);
+      hr [] [];
     ]
 
-let output_view model =
+let output_view production part quantity =
   div []
     [
-      text (string_of_int model.production.output)
+      text (String.concat " " [
+        Js.Float.toString quantity;
+        encode_building production.building;
+        "-";
+        encode_part part;
+      ])
     ]
 
-let input_view model =
-  div []
-    (List.map (fun (part, quantity) -> [text (encode_part part); text " "; text (string_of_int quantity); br []]) model.production.input |> List.concat)
-
-let calculation_view model =
+let rec input_view part number_of_buildings production_map =
+  div [] [
+    div [class' "col-lg-12"]
+      (List.map (fun (dependency, num_required) ->
+           let dep_production = Production.find dependency production_map in
+           let modifier = ceil (num_required /. dep_production.output) in
+           let quantity = modifier *. dep_production.output
+           in
+           [
+             calculation_view dependency (quantity *. number_of_buildings) production_map
+           ]) part.input |> List.concat);
+  ]
+and calculation_view part quantity production_map =
+  let production = Production.find part production_map in
+  let number_of_buildings = ceil (quantity /. production.output)
+  in
   div []
     [
-      output_view model;
-      input_view model;
+      output_view production part number_of_buildings;
+      input_view production number_of_buildings production_map;
     ]
 
 let view model =
@@ -86,5 +104,5 @@ let view model =
     [
       h1 [] [ text "Factory Assistant" ];
       form_view model;
-      calculation_view model;
+      calculation_view model.part model.number model.production_map;
     ]

@@ -22,3 +22,10 @@ let encode_part =
   | Motor -> "motor"
 
   | SteelIngot -> "steel_ingot"
+
+let encode_building =
+  function
+  | Smelter -> "Smelter"
+  | Constructor -> "Constructor"
+  | Assembler -> "Assembler"
+  | Foundry -> "Foundry"

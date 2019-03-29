@@ -5,7 +5,7 @@ open Update
 open View
 
 let init () = { part = IronIngot;
-                number = 30;
+                number = 30.;
                 production_map = prod;
                 production = Production.find IronIngot prod;
               }

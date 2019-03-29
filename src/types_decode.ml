@@ -14,7 +14,7 @@ let decode_part =
   | "steel_beam" -> SteelBeam
   | "steel_pipe" -> SteelPipe
 
-  | "reinforce_iron_plate" -> ReinforcedIronPlate
+  | "reinforced_iron_plate" -> ReinforcedIronPlate
   | "rotor" -> Rotor
   | "modular_frame" -> ModularFrame
   | "encased_industrial_beam" -> EncasedIndustrialBeam
