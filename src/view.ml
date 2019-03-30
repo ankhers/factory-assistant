@@ -78,7 +78,7 @@ let form_view index (part, quantity) production_map =
             ] [];
           small [ class' "form-text text-muted" ]
             [
-              text (String.concat " " ["Max ppm per building:"; Js.Float.toString production.output])
+              text (String.concat " " ["Max ppm per"; encode_building production.building.building; ":"; Js.Float.toString production.output])
             ]
         ];
       div [ class' "col col-sm-1"; style "margin-top" "32px" ]
@@ -94,7 +94,7 @@ let output_view production part number_of_buildings quantity_needed =
     [
       text (String.concat " " [
           number_to_locale_string number_of_buildings;
-          encode_building production.building;
+          encode_building production.building.building;
           "-";
           encode_part part;
           String.concat "" ["("; number_to_locale_string remainder; " Extra)";]
