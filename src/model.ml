@@ -1,8 +1,7 @@
 open Types
 
 type model =
-  { part : part;
-    number : float;
+  { parts : (part * float) list;
     production_map : production Production.t;
     production : production;
   }

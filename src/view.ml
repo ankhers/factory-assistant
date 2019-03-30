@@ -5,23 +5,30 @@ open Msg
 open Model
 open Tea.Html
 
+let rec intersperse list el =
+  match list with
+  | [] | [ _ ]   -> list
+  | x :: y :: tl -> x :: el :: intersperse (y::tl) el
+
 let view_button title msg = button [onClick msg] [text title]
 
 let view_option v = option' [ value v ] [ text v ]
 
 let number_to_locale_string: (float -> string) = [%raw fun num -> "return num.toLocaleString()"]
 
-let form_view model =
-  div []
+let form_view index (part, quantity) production_map =
+  let production = Production.find part production_map
+  in
+  div [ class' "form-row" ]
     [
-      div [ class' "form-group" ]
+      div [ class' "col" ]
         [
           label [ for' "part" ] [ text "Part" ];
           select
             [
-              onChange (fun part -> SetPart (decode_part part));
+              onChange (fun part -> ChangePart (index, (decode_part part)));
               id "part";
-              class' "col-sm-12 form-control";
+              class' "form-control";
             ]
             [
               optgroup [ Vdom.prop "label" "Smelter" ]
@@ -58,20 +65,26 @@ let form_view model =
                 ];
             ];
         ];
-      div [ class' "form-group" ]
+      div [ class' "col" ]
         [
-          label [ for' "quantity" ] [ text "Parts Per Minute" ];
+          label [ for' "quantity" ] [ text "PPM" ];
           input'
             [
-              onInput (fun s -> ChangeNumber (float_of_string s));
+              onInput (fun s -> ChangeQuantity (index, (float_of_string s)));
               id "quantity";
               type' "number";
-              value (Js.Float.toString model.number);
+              value (Js.Float.toString quantity);
               class' "form-control"
             ] [];
+          small [ class' "form-text text-muted" ]
+            [
+              text (String.concat " " ["Max ppm per building:"; Js.Float.toString production.output])
+            ]
         ];
-      text (String.concat " " ["Max output per minute per building"; Js.Float.toString model.production.output]);
-      hr [] [];
+      div [ class' "col col-sm-1"; style "margin-top" "32px" ]
+        [
+          button [ class' "btn btn-danger"; onClick (RemovePart index) ] [ i [ class' "fa fa-times" ] [ ] ]
+        ];
     ]
 
 let output_view production part number_of_buildings quantity_needed =
@@ -95,10 +108,10 @@ let rec input_view part number_of_buildings production_map =
            let quantity_needed = number_of_buildings *. num_required
            in
            [
-             calculation_view dependency quantity_needed production_map
+             calculation_view (dependency, quantity_needed) production_map
            ]) part.input |> List.concat);
   ]
-and calculation_view part quantity_needed production_map =
+and calculation_view (part, quantity_needed) production_map =
   let production = Production.find part production_map in
   let number_of_buildings = ceil (quantity_needed /. production.output)
   in
@@ -109,9 +122,18 @@ and calculation_view part quantity_needed production_map =
     ]
 
 let view model =
-  div [class' "col-lg-6 offset-lg-3"]
+  div [class' "col-lg-6 offset-3"]
     [
-      h1 [ class' "text-center" ] [ text "Factory Assistant" ];
-      form_view model;
-      calculation_view model.part model.number model.production_map;
+      h1 [ class' "" ] [ text "Factory Assistant" ];
+      div [] (List.mapi (fun i part -> form_view i part model.production_map) model.parts);
+      div [ class' "text-right" ]
+        [
+          button [
+            class' "btn btn-primary ";
+            onClick AddPart;
+          ] [ i [ class' "fa fa-plus" ] [] ]
+        ];
+      div []
+        (intersperse (List.map (fun part -> calculation_view part model.production_map) model.parts) (hr [] []))
+      (* calculation_view model.part model.number model.production_map; *)
     ]

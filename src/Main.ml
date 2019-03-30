@@ -4,8 +4,7 @@ open Model
 open Update
 open View
 
-let init () = { part = IronIngot;
-                number = 30.;
+let init () = { parts = initial_parts;
                 production_map = prod;
                 production = Production.find IronIngot prod;
               }

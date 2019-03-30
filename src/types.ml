@@ -91,3 +91,5 @@ let prod =
     |> Production.add SteelIngot { building = Foundry;
                                    output = 30.;
                                    input = [] }
+
+let initial_parts = [(IronIngot, 30.)]

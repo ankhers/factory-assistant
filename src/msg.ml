@@ -1,5 +1,7 @@
 open Types
 
 type msg =
-  | SetPart of part
-  | ChangeNumber of float
+  | ChangePart of int * part
+  | ChangeQuantity of int * float
+  | AddPart
+  | RemovePart of int
