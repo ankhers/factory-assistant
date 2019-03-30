@@ -74,14 +74,17 @@ let form_view model =
       hr [] [];
     ]
 
-let output_view production part quantity =
+let output_view production part number_of_buildings quantity_needed =
+  let remainder = mod_float quantity_needed production.output
+  in
   div []
     [
       text (String.concat " " [
-          number_to_locale_string quantity;
+          number_to_locale_string number_of_buildings;
           encode_building production.building;
           "-";
           encode_part part;
+          String.concat "" ["("; number_to_locale_string remainder; " Extra)";]
         ])
     ]
 
@@ -101,7 +104,7 @@ and calculation_view part quantity_needed production_map =
   in
   div []
     [
-      output_view production part number_of_buildings;
+      output_view production part number_of_buildings quantity_needed;
       input_view production number_of_buildings production_map;
     ]
 
