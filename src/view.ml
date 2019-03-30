@@ -89,17 +89,15 @@ let rec input_view part number_of_buildings production_map =
   div [] [
     div [class' "col-lg-12"]
       (List.map (fun (dependency, num_required) ->
-           let dep_production = Production.find dependency production_map in
-           let modifier = ceil (num_required /. dep_production.output) in
-           let quantity = modifier *. dep_production.output
+           let quantity_needed = number_of_buildings *. num_required
            in
            [
-             calculation_view dependency (quantity *. number_of_buildings) production_map
+             calculation_view dependency quantity_needed production_map
            ]) part.input |> List.concat);
   ]
-and calculation_view part quantity production_map =
+and calculation_view part quantity_needed production_map =
   let production = Production.find part production_map in
-  let number_of_buildings = ceil (quantity /. production.output)
+  let number_of_buildings = ceil (quantity_needed /. production.output)
   in
   div []
     [
