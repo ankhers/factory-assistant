@@ -28,7 +28,7 @@ let form_view index (part, quantity) production_map =
             [
               onChange (fun part -> ChangePart (index, (decode_part part)));
               id "part";
-              class' "form-control";
+              class' "form-control dropdown-toggle";
             ]
             [
               optgroup [ Vdom.prop "label" "Smelter" ]
@@ -78,7 +78,7 @@ let form_view index (part, quantity) production_map =
             ] [];
           small [ class' "form-text text-muted" ]
             [
-              text (String.concat " " ["Max ppm per"; encode_building production.building.building; ":"; Js.Float.toString production.output])
+              text (String.concat " " ["Max ppm per"; encode_building production.building.building ^ ":"; Js.Float.toString production.output])
             ]
         ];
       div [ class' "col col-sm-1"; style "margin-top" "32px" ]
@@ -121,6 +121,24 @@ and calculation_view (part, quantity_needed) production_map =
       input_view production number_of_buildings production_map;
     ]
 
+let energy_consumption model =
+  let energy_consumption_aux acc (part, quantity) =
+    let production = Production.find part model.production_map in
+    let number_of_buildings = ceil @@ quantity /. production.output in
+    let part_energy_consumption = number_of_buildings *. production.building.power_consumption
+    in
+    acc +. part_energy_consumption
+  in
+  List.fold_left energy_consumption_aux 0. model.total_production
+
+let energy_consumption_view model =
+  let energy = energy_consumption model
+  in
+  div []
+    [
+      text @@ "Total energy consumption: " ^ Js.Float.toString energy ^ "MW";
+    ]
+
 let view model =
   div [class' "col-lg-6 offset-3"]
     [
@@ -133,6 +151,7 @@ let view model =
             onClick AddPart;
           ] [ i [ class' "fa fa-plus" ] [] ]
         ];
+      energy_consumption_view model;
       div []
         (intersperse (List.map (fun part -> calculation_view part model.production_map) model.parts) (hr [] []))
       (* calculation_view model.part model.number model.production_map; *)
