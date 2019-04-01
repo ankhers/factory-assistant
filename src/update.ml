@@ -25,8 +25,9 @@ let sum_parts parts production_map =
   List.fold_left sum_parts_aux [] parts
 
 let update_total_production model =
-  (* let graph = List.fold_left (fun acc part -> sum_parts acc part model.production_map) [] model.parts *)
-  let graph = sum_parts model.parts model.production_map
+  let graph = sum_parts model.parts model.production_map in
+  let graph = List.fold_left (fun acc part -> add_part acc part) [] graph in
+  let _ = Js.log (List.map (fun (p, q) -> (encode_part p, q)) graph)
   in
   { model with total_production = graph }
 
@@ -80,12 +81,20 @@ let update model =
     in
     model
   | ChangeQuantity (index, quantity) ->
-    let parts = List.mapi (fun i (part, q) -> if i == index then (part, quantity) else (part, q)) model.parts
+    let parts = List.mapi (fun i (part, q) -> if i == index then (part, quantity) else (part, q)) model.parts in
+    let model = update_total_production { model with parts } in
+    let _ = render_graph model
     in
-    update_total_production { model with parts }
+    model
   | AddPart ->
-    let parts = List.append model.parts [(IronIngot, 30.)]
+    let parts = List.append model.parts [(IronIngot, 30.)] in
+    let model = update_total_production { model with parts } in
+    let _ = render_graph model
     in
-    update_total_production { model with parts }
+    model
   | RemovePart index ->
-    update_total_production { model with parts = remove_nth model.parts index }
+    let parts = remove_nth model.parts index in
+    let model = update_total_production { model with parts } in
+    let _ = render_graph model
+    in
+    model
