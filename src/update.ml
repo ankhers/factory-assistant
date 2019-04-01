@@ -52,8 +52,7 @@ let (--) i j =
 let make_part_nodes (part, quantity) production_map graph =
   let production = Production.find part production_map in
   let range = 1 -- (int_of_float @@ ceil @@ quantity /. production.output) in
-  let _ = Js.log (List.length range) in
-  List.map (fun i -> DagreD3.Graphlib.Graph.set_node graph (encode_part part ^ string_of_int i) [%bs.obj { label = (encode_part part ^ string_of_int i)}]) range
+  List.map (fun i -> DagreD3.Graphlib.Graph.set_node graph (encode_part part ^ string_of_int i) [%bs.obj { label = encode_part part}]) range
 
 let make_nodes model graph =
   List.map (fun part -> make_part_nodes part model.production_map graph) model.total_production

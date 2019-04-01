@@ -81,7 +81,7 @@ let form_view index (part, quantity) production_map =
               text (String.concat " " ["Max ppm per"; encode_building production.building.building ^ ":"; Js.Float.toString production.output])
             ]
         ];
-      div [ class' "col col-sm-1"; style "margin-top" "32px" ]
+      div [ class' "col col-1"; style "margin-top" "32px" ]
         [
           button [ class' "btn btn-danger"; onClick (RemovePart index) ] [ i [ class' "fa fa-times" ] [ ] ]
         ];
@@ -140,7 +140,7 @@ let energy_consumption_view model =
     ]
 
 let view model =
-  div [class' "col-lg-6 offset-3"]
+  div [class' "col-lg-6 offset-lg-3"]
     [
       h1 [ class' "" ] [ text "Factory Assistant" ];
       div [] (List.mapi (fun i part -> form_view i part model.production_map) model.parts);
