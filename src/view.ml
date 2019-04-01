@@ -153,6 +153,6 @@ let view model =
         ];
       energy_consumption_view model;
       div []
-        (intersperse (List.map (fun part -> calculation_view part model.production_map) model.parts) (hr [] []))
+        (intersperse (List.map (fun part -> calculation_view part model.production_map) model.parts) (hr [] []));
       (* calculation_view model.part model.number model.production_map; *)
     ]

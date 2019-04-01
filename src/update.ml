@@ -30,12 +30,56 @@ let update_total_production model =
   in
   { model with total_production = graph }
 
+(* let g = DagreD3.Graphlib.Graph.create
+ *
+ * let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ())
+ *
+ * let _ = DagreD3.Graphlib.Graph.set_node g "Node 1" [%bs.obj { label = "Node1"}]
+ * let _ = DagreD3.Graphlib.Graph.set_node g "Node 2" [%bs.obj { label = "Node2"}]
+ *
+ * let svg = D3.select "svg"
+ * let inner = D3.svg_select svg "g"
+ *
+ * let render = DagreD3.render
+ *
+ * let _ = render inner g *)
+
+let (--) i j =
+  let rec aux n acc =
+    if n < i then acc else aux (n-1) (n :: acc)
+  in aux j []
+
+let make_part_nodes (part, quantity) production_map graph =
+  let production = Production.find part production_map in
+  let range = 1 -- (int_of_float @@ ceil @@ quantity /. production.output) in
+  let _ = Js.log (List.length range) in
+  List.map (fun i -> DagreD3.Graphlib.Graph.set_node graph (encode_part part ^ string_of_int i) [%bs.obj { label = (encode_part part ^ string_of_int i)}]) range
+
+let make_nodes model graph =
+  List.map (fun part -> make_part_nodes part model.production_map graph) model.total_production
+
+let set_edges model =
+  model
+
+let render_graph model =
+  let g = DagreD3.Graphlib.Graph.create in
+  let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ()) in
+  let _ = make_nodes model g in
+  let _ = set_edges model in
+  let svg = D3.select "svg" in
+  let inner = D3.svg_select svg "g" in
+  let render = DagreD3.render in
+  let _ = render inner g in
+  model
+
 let update model =
   function
   | ChangePart (index, part) ->
-    let parts = List.mapi (fun i (p, quantity) -> if i == index then (part, quantity) else (p, quantity)) model.parts
+    let parts = List.mapi (fun i (p, quantity) -> if i == index then (part, quantity) else (p, quantity)) model.parts in
+    let model = update_total_production { model with parts } in
+    let _ = render_graph model
     in
-    update_total_production { model with parts }
+    model
   | ChangeQuantity (index, quantity) ->
     let parts = List.mapi (fun i (part, q) -> if i == index then (part, quantity) else (part, q)) model.parts
     in

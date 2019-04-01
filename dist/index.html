@@ -10,17 +10,30 @@
         <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 
     <title>Factory Assistant</title>
+
+    <style>
+     .node rect {
+         stroke: #333;
+         fill: #fff;
+     }
+
+     .edgePath path {
+         stroke: #333;
+         fill: #333;
+         stroke-width: 1.5px;
+}
+    </style>
 </head>
 
 <body>
+    <div id='main'></div>
+    <svg><g /></svg>
     <script src="bundle.js"></script>
     <script>
-        window.onload = function () {
-            App.main(document.getElementById("main"));
-        };
-
+     window.onload = function () {
+         App.main(document.getElementById("main"));
+     };
     </script>
-    <div id='main'></div>
 </body>
 
 </html>

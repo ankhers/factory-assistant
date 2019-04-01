@@ -1,16 +1,10 @@
 open Tea.App
-open Types
 open Model
 open Update
 open View
 
-let init () = { parts = initial_parts;
-                production_map = prod;
-                production = Production.find IronIngot prod;
-                total_production = [(IronIngot, 30.)]
-              }
 (* MAIN *)
-let main = beginnerProgram { model = (init ()); update; view }
+let main = beginnerProgram { model = init (); update; view; }
 
 (* EXAMPLE CONSOLE LOG *)
 (* let _ =
