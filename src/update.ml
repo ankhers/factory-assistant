@@ -26,8 +26,7 @@ let sum_parts parts production_map =
 
 let update_total_production model =
   let graph = sum_parts model.parts model.production_map in
-  let graph = List.fold_left (fun acc part -> add_part acc part) [] graph in
-  let _ = Js.log (List.map (fun (p, q) -> (encode_part p, q)) graph)
+  let graph = List.fold_left (fun acc part -> add_part acc part) [] graph
   in
   { model with total_production = graph }
 
@@ -58,14 +57,43 @@ let make_part_nodes (part, quantity) production_map graph =
 let make_nodes model graph =
   List.map (fun part -> make_part_nodes part model.production_map graph) model.total_production
 
-let set_edges model =
-  model
+let rem_production part quantity list =
+  List.map (fun (p, q) -> if p == part then (p, q -. quantity) else (p, q)) list
+
+let node_names part output number list =
+  match List.filter (fun (p, _) -> p == part) list with
+  | [(_, q)] ->
+    let n = int_of_float (ceil @@ q /. output) in
+    let number = int_of_float number in
+    let start = n - number + 1 in
+    List.map (fun i -> encode_part part ^ string_of_int i) (start -- n)
+  | _ -> assert false
+
+let rec make_edges_for acc (part, quantity) production_map graph =
+  let parent_production = Production.find part production_map in
+  let number_of_buildings = ceil @@ quantity /. parent_production.output in
+  let parent_nodes = node_names part parent_production.output number_of_buildings acc in
+  let acc = rem_production part quantity acc in
+  let zipped = List.map (fun a -> List.map (fun b -> (a, b)) parent_production.input) parent_nodes |> List.concat in
+  let aux acc (parent_node, (part, quantity)) =
+    let production = Production.find part production_map in
+    let number_of_buildings = ceil @@ quantity /. production.output in
+    let nodes = node_names part production.output number_of_buildings acc in
+    let _ = List.map (fun node ->
+        DagreD3.Graphlib.Graph.set_edge graph node parent_node (Js.Obj.empty ())) nodes in
+    List.fold_left (fun acc part -> make_edges_for acc part production_map graph) acc [(part, quantity)]
+  in
+  List.fold_left aux acc zipped
+
+let make_edges model graph =
+  List.fold_left (fun acc part -> make_edges_for acc part model.production_map graph) model.total_production model.parts
+
 
 let render_graph model =
   let g = DagreD3.Graphlib.Graph.create in
   let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ()) in
   let _ = make_nodes model g in
-  let _ = set_edges model in
+  let _ = make_edges model g in
   let svg = D3.select "svg" in
   let inner = D3.svg_select svg "g" in
   let render = DagreD3.render in
