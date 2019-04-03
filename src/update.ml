@@ -104,6 +104,7 @@ let update model =
   function
   | ChangePart (index, part) ->
     let parts = List.mapi (fun i (p, quantity) -> if i == index then (part, quantity) else (p, quantity)) model.parts in
+    let _ = Js.log parts in
     let model = update_total_production { model with parts } in
     let _ = render_graph model
     in
