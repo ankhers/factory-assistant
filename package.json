@@ -11,8 +11,9 @@
     "watch:bsb": "bsb -make-world -w -theme basic-reason",
     "watch:js": "webpack-dev-server",
     "watch:jest": "jest --watchAll",
-    "watch": "run-p watch:bsb watch:js watch:jest",
-    "start": "run-s watch"
+    "watch": "run-p watch:bsb watch:js",
+    "start": "run-s watch",
+    "test": "jest --watchAll"
   },
   "keywords": [
     "BuckleScript"

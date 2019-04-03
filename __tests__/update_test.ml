@@ -88,7 +88,7 @@ let _ =
       let open Expect in
 
       test "initial" (fun () ->
-          let received = build_edges model.parts model.total_production model.production_map in
+          let (received, _) = build_edges model.parts model.total_production model.production_map in
           let expected = [] in
 
           expect received |> toEqual expected);
@@ -97,8 +97,8 @@ let _ =
           let model = update model (ChangePart (0, IronRod)) in
           let model = update model (ChangeQuantity (0, 15.)) in
 
-          let received = build_edges model.parts model.total_production model.production_map in
-          let expected = [("Iron Ingot1", "Iron Rod1")] in
+          let (received, _) = build_edges model.parts model.total_production model.production_map in
+          let expected = [("Iron Ingot1", "Splitter0"); ("Splitter0", "Iron Rod1")] in
 
           expect received |> toEqual expected);
 
@@ -106,8 +106,8 @@ let _ =
           let model = update model (ChangePart (0, Screw)) in
           let model = update model (ChangeQuantity (0, 90.)) in
 
-          let received = build_edges model.parts model.total_production model.production_map in
-          let expected = [("Iron Ingot1", "Iron Rod1"); ("Iron Rod1", "Screw1")] in
+          let (received, _) = build_edges model.parts model.total_production model.production_map in
+          let expected = [("Iron Ingot1", "Splitter0"); ("Splitter0", "Iron Rod1"); ("Iron Rod1", "Screw1")] in
 
           expect received |> toEqual expected);
 
@@ -115,8 +115,8 @@ let _ =
           let model = update model (ChangePart (0, Screw)) in
           let model = update model (ChangeQuantity (0, 180.)) in
 
-          let received = build_edges model.parts model.total_production model.production_map in
-          let expected = [("Iron Ingot1", "Iron Rod1"); ("Iron Rod1", "Screw2"); ("Iron Ingot1", "Iron Rod2"); ("Iron Rod2", "Screw1")] in
+          let (received, _) = build_edges model.parts model.total_production model.production_map in
+          let expected = [("Splitter0", "Iron Rod1"); ("Iron Rod1", "Screw2"); ("Iron Ingot1", "Splitter0"); ("Splitter0", "Iron Rod2"); ("Iron Rod2", "Screw1")] in
 
           expect received |> toEqual expected);
     )

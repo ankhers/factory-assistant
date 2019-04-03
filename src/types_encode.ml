@@ -29,3 +29,9 @@ let encode_building =
   | Constructor -> "Constructor"
   | Assembler -> "Assembler"
   | Foundry -> "Foundry"
+
+let encode_logistic =
+  function
+  | Splitter -> "Splitter"
+  | Merger -> "Merger"
+  | Nothing -> "Nothing"

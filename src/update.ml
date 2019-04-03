@@ -3,6 +3,10 @@ open Types_encode
 open Msg
 open Model
 
+let rec nth n = function
+  | x :: xs -> if n == 0 then x else nth (n - 1) xs
+  | _ -> assert false
+
 let rec remove_nth l n =
   match l with
   | x :: xs -> if n = 0 then remove_nth xs (n - 1) else x :: remove_nth xs (n - 1)
@@ -77,30 +81,76 @@ let node_names part output number list =
     List.map (fun i -> encode_part part ^ string_of_int i) (start -- n)
   | _ -> assert false
 
+let logistics_type x y =
+  match compare x y with
+  | -1 -> Splitter
+  | 1 -> Merger
+  | _ -> Nothing
+
+let rec find_opt p = function
+  | [] -> None
+  | x :: l -> if p x then Some x else find_opt p l
+
 let build_edges parts total_production production_map =
-  let rec parent_aux (total_production, edges) (part, quantity) =
+  let rec parent_aux (total_production, edges, logistics) (part, quantity) =
     let parent_production = Production.find part production_map in
     let parent_number_of_buildings = ceil @@ quantity /. parent_production.output in
     let parent_nodes = node_names part parent_production.output parent_number_of_buildings total_production in
     let total_production =
       rem_production part quantity total_production in
     let zipped = List.map (fun a -> List.map (fun b -> (a, b)) parent_production.input) parent_nodes |> List.concat in
-    let child_aux (total_production, edges) (parent_node, (part, quantity)) =
+    let child_aux (total_production, edges, logistics) (parent_node, (part, quantity)) =
       let child_production = Production.find part production_map in
+      let logistics_type = logistics_type quantity child_production.output in
       let child_number_of_buildings = ceil @@ quantity /. child_production.output in
-      let child_nodes = node_names part child_production.output child_number_of_buildings total_production in
-      let edges = List.fold_left (fun acc node -> (node, parent_node) :: acc) edges child_nodes in
-      List.fold_left parent_aux (total_production, edges) [(part, quantity)]
+      (* let (child_nodes, logistic_nodes, logistics) = *)
+      let (edges, logistics) =
+        if logistics_type == Nothing
+        then
+          let child_nodes = node_names part child_production.output child_number_of_buildings total_production in
+          let edges = List.fold_left (fun acc node -> (node, parent_node) :: acc) edges child_nodes in
+
+          (edges, logistics)
+        else
+          let rec need_new n = function
+            | [] -> (true, n)
+            | (t, (p, _)) :: l ->
+              if p == part && t == logistics_type
+              then (false, n)
+              else need_new (n + 1) l
+          in
+          let (required, n) = need_new 0 logistics in
+          if required
+          then
+            let new_logistic = (logistics_type, (part, child_production.output -. quantity)) in
+            let length = List.length logistics in
+            let logistics = List.append logistics [new_logistic] in
+            let node_name = encode_logistic logistics_type in
+            let node_identifier = node_name ^ string_of_int length in
+            let node = encode_part part ^ Js.Float.toString child_number_of_buildings in
+            ((node, node_identifier) :: (node_identifier, parent_node) :: edges, logistics)
+          else
+            (* Need to add or subtract from logistic *)
+            let node_identifier =
+              encode_logistic logistics_type ^ string_of_int n in
+            ((node_identifier, parent_node) :: edges, logistics)
+      in
+      List.fold_left parent_aux (total_production, edges, logistics) [(part, quantity)]
     in
-    List.fold_left child_aux (total_production, edges) zipped
+    List.fold_left child_aux (total_production, edges, logistics) zipped
   in
-  let (_, edges) = List.fold_left parent_aux (total_production, []) parts in
-  edges
+  let (_, edges, logistics) =
+    List.fold_left parent_aux (total_production, [], []) parts in
+  (edges, logistics)
 
 let make_edges model graph =
-  build_edges model.parts model.total_production model.production_map
-  |> List.map (fun (child, parent) ->
-    DagreD3.Graphlib.Graph.set_edge graph child parent (Js.Obj.empty ()))
+  let (edges, logistics) =
+    build_edges model.parts model.total_production model.production_map in
+  let _ =
+    List.mapi (fun i (logistic, _) ->
+      DagreD3.Graphlib.Graph.set_node graph (encode_logistic logistic ^ string_of_int i) [%bs.obj { label = encode_logistic logistic; shape = "diamond" }]) logistics in
+  List.map (fun (child, parent) ->
+      DagreD3.Graphlib.Graph.set_edge graph child parent (Js.Obj.empty ())) edges
 
 let render_graph model =
   let g = DagreD3.Graphlib.Graph.create in

@@ -1,3 +1,8 @@
+type logitistics =
+  | Splitter
+  | Merger
+  | Nothing
+
 type production_buildings =
   | Smelter
   | Constructor
