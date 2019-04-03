@@ -49,15 +49,14 @@ let (--) i j =
     if n < i then acc else aux (n-1) (n :: acc)
   in aux j []
 
-let make_part_nodes (part, quantity) production_map =
-  let production = Production.find part production_map in
-  let range = 1 -- (int_of_float @@ ceil @@ quantity /. production.output) in
-  let part = encode_part part in
-  List.map (fun i -> (part ^ string_of_int i, part)) range
-
 let build_nodes parts production_map =
-  List.map (fun part -> make_part_nodes part production_map) parts
-  |> List.flatten
+  let aux (part, quantity) =
+    let production = Production.find part production_map in
+    let range = 1 -- (int_of_float @@ ceil @@ quantity /. production.output) in
+    let part = encode_part part in
+    List.map (fun i -> (part ^ string_of_int i, part)) range
+  in
+  List.map aux parts |> List.flatten
 
 let make_nodes model graph =
   build_nodes model.total_production model.production_map
@@ -78,25 +77,30 @@ let node_names part output number list =
     List.map (fun i -> encode_part part ^ string_of_int i) (start -- n)
   | _ -> assert false
 
-let rec make_edges_for acc (part, quantity) production_map graph =
-  let parent_production = Production.find part production_map in
-  let number_of_buildings = ceil @@ quantity /. parent_production.output in
-  let parent_nodes = node_names part parent_production.output number_of_buildings acc in
-  let acc = rem_production part quantity acc in
-  let zipped = List.map (fun a -> List.map (fun b -> (a, b)) parent_production.input) parent_nodes |> List.concat in
-  let aux acc (parent_node, (part, quantity)) =
-    let production = Production.find part production_map in
-    let number_of_buildings = ceil @@ quantity /. production.output in
-    let nodes = node_names part production.output number_of_buildings acc in
-    let _ = List.map (fun node ->
-        DagreD3.Graphlib.Graph.set_edge graph node parent_node (Js.Obj.empty ())) nodes in
-    List.fold_left (fun acc part -> make_edges_for acc part production_map graph) acc [(part, quantity)]
+let build_edges parts total_production production_map =
+  let rec parent_aux (total_production, edges) (part, quantity) =
+    let parent_production = Production.find part production_map in
+    let parent_number_of_buildings = ceil @@ quantity /. parent_production.output in
+    let parent_nodes = node_names part parent_production.output parent_number_of_buildings total_production in
+    let total_production =
+      rem_production part quantity total_production in
+    let zipped = List.map (fun a -> List.map (fun b -> (a, b)) parent_production.input) parent_nodes |> List.concat in
+    let child_aux (total_production, edges) (parent_node, (part, quantity)) =
+      let child_production = Production.find part production_map in
+      let child_number_of_buildings = ceil @@ quantity /. child_production.output in
+      let child_nodes = node_names part child_production.output child_number_of_buildings total_production in
+      let edges = List.fold_left (fun acc node -> (node, parent_node) :: acc) edges child_nodes in
+      List.fold_left parent_aux (total_production, edges) [(part, quantity)]
+    in
+    List.fold_left child_aux (total_production, edges) zipped
   in
-  List.fold_left aux acc zipped
+  let (_, edges) = List.fold_left parent_aux (total_production, []) parts in
+  edges
 
 let make_edges model graph =
-  List.fold_left (fun acc part -> make_edges_for acc part model.production_map graph) model.total_production model.parts
-
+  build_edges model.parts model.total_production model.production_map
+  |> List.map (fun (child, parent) ->
+    DagreD3.Graphlib.Graph.set_edge graph child parent (Js.Obj.empty ()))
 
 let render_graph model =
   let g = DagreD3.Graphlib.Graph.create in
