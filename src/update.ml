@@ -49,13 +49,22 @@ let (--) i j =
     if n < i then acc else aux (n-1) (n :: acc)
   in aux j []
 
-let make_part_nodes (part, quantity) production_map graph =
+let make_part_nodes (part, quantity) production_map =
   let production = Production.find part production_map in
   let range = 1 -- (int_of_float @@ ceil @@ quantity /. production.output) in
-  List.map (fun i -> DagreD3.Graphlib.Graph.set_node graph (encode_part part ^ string_of_int i) [%bs.obj { label = encode_part part}]) range
+  let part = encode_part part in
+  List.map (fun i -> (part ^ string_of_int i, part)) range
+
+let build_nodes parts production_map =
+  List.map (fun part -> make_part_nodes part production_map) parts
+  |> List.flatten
 
 let make_nodes model graph =
-  List.map (fun part -> make_part_nodes part model.production_map graph) model.total_production
+  build_nodes model.total_production model.production_map
+  |> List.map (fun (node, label) ->
+      let label = [%bs.obj { label = label }] in
+      DagreD3.Graphlib.Graph.set_node graph node label
+    )
 
 let rem_production part quantity list =
   List.map (fun (p, q) -> if p == part then (p, q -. quantity) else (p, q)) list
@@ -104,7 +113,6 @@ let update model =
   function
   | ChangePart (index, part) ->
     let parts = List.mapi (fun i (p, quantity) -> if i == index then (part, quantity) else (p, quantity)) model.parts in
-    let _ = Js.log parts in
     let model = update_total_production { model with parts } in
     let _ = render_graph model
     in
