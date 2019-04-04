@@ -34,20 +34,6 @@ let update_total_production model =
   in
   { model with total_production = graph }
 
-(* let g = DagreD3.Graphlib.Graph.create
- *
- * let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ())
- *
- * let _ = DagreD3.Graphlib.Graph.set_node g "Node 1" [%bs.obj { label = "Node1"}]
- * let _ = DagreD3.Graphlib.Graph.set_node g "Node 2" [%bs.obj { label = "Node2"}]
- *
- * let svg = D3.select "svg"
- * let inner = D3.svg_select svg "g"
- *
- * let render = DagreD3.render
- *
- * let _ = render inner g *)
-
 let (--) i j =
   let rec aux n acc =
     if n < i then acc else aux (n-1) (n :: acc)
@@ -65,8 +51,8 @@ let build_nodes parts production_map =
 let make_nodes model graph =
   build_nodes model.total_production model.production_map
   |> List.map (fun (node, label) ->
-      let label = [%bs.obj { label = label }] in
-      DagreD3.Graphlib.Graph.set_node graph node label
+      let attrs = [%bs.obj { label = label }] in
+      DagreD3.Graphlib.Graph.set_node graph node attrs
     )
 
 let rem_production part quantity list =
@@ -103,11 +89,10 @@ let build_edges parts total_production production_map =
       let child_production = Production.find part production_map in
       let logistics_type = logistics_type quantity child_production.output in
       let child_number_of_buildings = ceil @@ quantity /. child_production.output in
-      (* let (child_nodes, logistic_nodes, logistics) = *)
-      let (edges, logistics) =
+      let child_nodes = node_names part child_production.output child_number_of_buildings total_production in
+      let edges_aux (edges, logistics) child_node_name =
         if logistics_type == Nothing
         then
-          let child_nodes = node_names part child_production.output child_number_of_buildings total_production in
           let edges = List.fold_left (fun acc node -> (node, parent_node) :: acc) edges child_nodes in
 
           (edges, logistics)
@@ -122,20 +107,32 @@ let build_edges parts total_production production_map =
           let (required, n) = need_new 0 logistics in
           if required
           then
-            let new_logistic = (logistics_type, (part, child_production.output -. quantity)) in
+            let new_logistic =
+                (logistics_type, (part, child_production.output -. quantity))
+            in
             let length = List.length logistics in
             let logistics = List.append logistics [new_logistic] in
             let node_name = encode_logistic logistics_type in
             let node_identifier = node_name ^ string_of_int length in
-            let node = encode_part part ^ Js.Float.toString child_number_of_buildings in
-            ((node, node_identifier) :: (node_identifier, parent_node) :: edges, logistics)
+            ((child_node_name, node_identifier) :: (node_identifier, parent_node) :: edges, logistics)
           else
             (* Need to add or subtract from logistic *)
             let node_identifier =
               encode_logistic logistics_type ^ string_of_int n in
-            ((node_identifier, parent_node) :: edges, logistics)
+            let edges =
+              match logistics_type with
+              | Splitter ->
+                (node_identifier, parent_node) :: edges
+              | Merger ->
+                (child_node_name, node_identifier) :: edges
+              | _ -> assert false
+            in
+            (edges, logistics)
       in
-      List.fold_left parent_aux (total_production, edges, logistics) [(part, quantity)]
+      let (edges, logistics) =
+        List.fold_left edges_aux (edges, logistics) child_nodes
+      in
+      parent_aux (total_production, edges, logistics) (part, quantity)
     in
     List.fold_left child_aux (total_production, edges, logistics) zipped
   in
@@ -148,7 +145,9 @@ let make_edges model graph =
     build_edges model.parts model.total_production model.production_map in
   let _ =
     List.mapi (fun i (logistic, _) ->
-      DagreD3.Graphlib.Graph.set_node graph (encode_logistic logistic ^ string_of_int i) [%bs.obj { label = encode_logistic logistic; shape = "diamond" }]) logistics in
+        let attrs = [%bs.obj { label = encode_logistic logistic
+                             ; shape = "diamond"}] in
+      DagreD3.Graphlib.Graph.set_node graph (encode_logistic logistic ^ string_of_int i) attrs) logistics in
   List.map (fun (child, parent) ->
       DagreD3.Graphlib.Graph.set_edge graph child parent (Js.Obj.empty ())) edges
 
