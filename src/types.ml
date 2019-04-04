@@ -1,6 +1,6 @@
 type logitistics =
-  | Splitter
-  | Merger
+  | Splitter of int
+  | Merger of int
   | Nothing
 
 type production_buildings =

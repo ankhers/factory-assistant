@@ -69,8 +69,8 @@ let node_names part output number list =
 
 let logistics_type x y =
   match compare x y with
-  | -1 -> Splitter
-  | 1 -> Merger
+  | -1 -> Splitter (int_of_float @@ ceil @@ y /. x)
+  | 1 -> Merger (int_of_float @@ ceil @@ x /. y)
   | _ -> Nothing
 
 let rec find_opt p = function
@@ -99,8 +99,14 @@ let build_edges parts total_production production_map =
         else
           let rec need_new n = function
             | [] -> (true, n)
-            | (t, (p, _)) :: l ->
-              if p == part && t == logistics_type
+            | (t, (p, m)) :: l ->
+              let logistics_number =
+                match t with
+                | Splitter n -> n
+                | Merger n -> n
+                | _ -> assert false
+              in
+              if p = part && t = logistics_type && m + 1 < logistics_number
               then (false, n)
               else need_new (n + 1) l
           in
@@ -108,7 +114,7 @@ let build_edges parts total_production production_map =
           if required
           then
             let new_logistic =
-                (logistics_type, (part, child_production.output -. quantity))
+                (logistics_type, (part, 0))
             in
             let length = List.length logistics in
             let logistics = List.append logistics [new_logistic] in
@@ -119,15 +125,23 @@ let build_edges parts total_production production_map =
             (* Need to add or subtract from logistic *)
             let node_identifier =
               encode_logistic logistics_type ^ string_of_int n in
-            let edges =
+            let add_nth = List.mapi (fun i (l, (p, m)) ->
+                if i == n
+                then (l, (p, m + 1))
+                else (l, (p, m))
+              ) logistics
+            in
+            let result =
               match logistics_type with
-              | Splitter ->
-                (node_identifier, parent_node) :: edges
-              | Merger ->
-                (child_node_name, node_identifier) :: edges
+              | Splitter _ ->
+                let logistics = add_nth in
+                ((node_identifier, parent_node) :: edges, logistics)
+              | Merger _ ->
+                let logistics = add_nth in
+                ((child_node_name, node_identifier) :: edges, logistics)
               | _ -> assert false
             in
-            (edges, logistics)
+            result
       in
       let (edges, logistics) =
         List.fold_left edges_aux (edges, logistics) child_nodes
