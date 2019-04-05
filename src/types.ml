@@ -1,8 +1,3 @@
-type logitistics =
-  | Splitter of int
-  | Merger of int
-  | Nothing
-
 type production_buildings =
   | Smelter
   | Constructor
@@ -37,6 +32,13 @@ type part =
   | SteelIngot
 
 module Production = Map.Make(struct type t = part let compare = compare end)
+
+type logitistics =
+  (* part, number of splits allowed, current number of splits used *)
+  | Splitter of part * int * int
+  (* part, goal number, current number *)
+  | Merger of part * int * int
+  | Nothing
 
 (* MODEL *)
 type production =

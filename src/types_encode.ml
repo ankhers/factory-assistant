@@ -32,6 +32,6 @@ let encode_building =
 
 let encode_logistic =
   function
-  | Splitter n -> "Splitter (" ^ string_of_int n ^ ")"
-  | Merger n -> "Merger (" ^ string_of_int n ^ ")"
+  | Splitter _ -> "Splitter"
+  | Merger _ -> "Merger"
   | Nothing -> "Nothing"

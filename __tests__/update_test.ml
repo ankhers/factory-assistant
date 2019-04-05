@@ -98,7 +98,7 @@ let _ =
           let model = update model (ChangeQuantity (0, 15.)) in
 
           let (received, _) = build_edges model.parts model.total_production model.production_map in
-          let expected = [("Iron Ingot1", "Splitter (2)0"); ("Splitter (2)0", "Iron Rod1")] in
+          let expected = [("Iron Ingot1", "Splitter0"); ("Splitter0", "Iron Rod1")] in
 
           expect received |> toEqual expected);
 
@@ -107,7 +107,7 @@ let _ =
           let model = update model (ChangeQuantity (0, 90.)) in
 
           let (received, _) = build_edges model.parts model.total_production model.production_map in
-          let expected = [("Iron Ingot1", "Splitter (2)0"); ("Splitter (2)0", "Iron Rod1"); ("Iron Rod1", "Screw1")] in
+          let expected = [("Iron Ingot1", "Splitter0"); ("Splitter0", "Iron Rod1"); ("Iron Rod1", "Screw1")] in
 
           expect received |> toEqual expected);
 
@@ -116,7 +116,7 @@ let _ =
           let model = update model (ChangeQuantity (0, 180.)) in
 
           let (received, _) = build_edges model.parts model.total_production model.production_map in
-          let expected = [("Splitter (2)0", "Iron Rod1"); ("Iron Rod1", "Screw2"); ("Iron Ingot1", "Splitter (2)0"); ("Splitter (2)0", "Iron Rod2"); ("Iron Rod2", "Screw1")] in
+          let expected = [("Splitter0", "Iron Rod1"); ("Iron Rod1", "Screw2"); ("Iron Ingot1", "Splitter0"); ("Splitter0", "Iron Rod2"); ("Iron Rod2", "Screw1")] in
 
           expect received |> toEqual expected);
 
@@ -125,7 +125,7 @@ let _ =
           let model = update model (ChangePart (0, ReinforcedIronPlate)) in
 
           let (received, _) = build_edges model.parts model.total_production model.production_map in
-          let expected = [("Splitter (2)2", "Iron Rod1"); ("Iron Rod1", "Screw2"); ("Iron Ingot1", "Splitter (2)2"); ("Splitter (2)2", "Iron Rod2"); ("Iron Rod2", "Screw1"); ("Screw2", "Merger (2)1"); ("Screw1", "Merger (2)1"); ("Merger (2)1", "Reinforced Iron Plate1"); ("Iron Ingot2", "Iron Plate2"); ("Iron Ingot3", "Iron Plate1"); ("Iron Plate2", "Merger (2)0"); ("Iron Plate1", "Merger (2)0"); ("Merger (2)0", "Reinforced Iron Plate1")] in
+          let expected = [("Splitter2", "Iron Rod1"); ("Iron Rod1", "Screw2"); ("Iron Ingot1", "Splitter2"); ("Splitter2", "Iron Rod2"); ("Iron Rod2", "Screw1"); ("Screw2", "Merger1"); ("Screw1", "Merger1"); ("Merger1", "Reinforced Iron Plate1"); ("Iron Ingot2", "Iron Plate2"); ("Iron Ingot3", "Iron Plate1"); ("Iron Plate2", "Merger0"); ("Iron Plate1", "Merger0"); ("Merger0", "Reinforced Iron Plate1")] in
 
           expect received |> toEqual expected);
 
@@ -134,7 +134,16 @@ let _ =
           let model = update model (ChangePart (0, Rotor)) in
 
           let (received, _) = build_edges model.parts model.total_production model.production_map in
-          let expected = [("Splitter (2)3", "Iron Rod1"); ("Iron Rod1", "Screw2"); ("Iron Ingot1", "Splitter (2)3"); ("Splitter (2)3", "Iron Rod2"); ("Iron Rod2", "Screw1"); ("Screw2", "Merger (2)2"); ("Screw1", "Merger (2)2"); ("Merger (2)2", "Rotor1"); ("Splitter (2)1", "Iron Rod4"); ("Iron Ingot2", "Splitter (2)1"); ("Splitter (2)1", "Iron Rod3"); ("Iron Rod4", "Merger (2)0"); ("Iron Rod3", "Merger (2)0"); ("Merger (2)0", "Rotor1")] in
+          let expected = [("Splitter3", "Iron Rod1"); ("Iron Rod1", "Screw2"); ("Iron Ingot1", "Splitter3"); ("Splitter3", "Iron Rod2"); ("Iron Rod2", "Screw1"); ("Screw2", "Merger2"); ("Screw1", "Merger2"); ("Merger2", "Rotor1"); ("Splitter1", "Iron Rod4"); ("Iron Ingot2", "Splitter1"); ("Splitter1", "Iron Rod3"); ("Iron Rod4", "Merger0"); ("Iron Rod3", "Merger0"); ("Merger0", "Rotor1")] in
+
+          expect received |> toEqual expected);
+
+      test "modular frame 4" (fun () ->
+          let model = update model (ChangeQuantity (0, 4.)) in
+          let model = update model (ChangePart (0, ModularFrame)) in
+
+          let (received, _) = build_edges model.parts model.total_production model.production_map in
+          let expected = [] in
 
           expect received |> toEqual expected);
     )
