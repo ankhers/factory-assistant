@@ -77,3 +77,40 @@ let _ =
 
           expect received |> toEqual expected);
     )
+
+let _ =
+  describe "build_edges" (fun () ->
+      let open Expect in
+
+      test "IronIngot 30" (fun () ->
+          let (_, nodes) = Graph.build_nodes model in
+          let received = Graph.build_edges model nodes in
+          let expected = ([], []) in
+
+          expect received |> toEqual expected);
+
+      test "IronIngot 60" (fun () ->
+          let (_, nodes) = Graph.build_nodes model in
+          let received = Graph.build_edges model nodes in
+          let expected = ([], []) in
+
+          expect received |> toEqual expected);
+
+      test "IronRod 15" (fun () ->
+          let model = update model (ChangePart (0, IronRod)) in
+          let model = update model (ChangeQuantity (0, 15.)) in
+          let (_, nodes) = Graph.build_nodes model in
+          let received = Graph.build_edges model nodes in
+          let expected = ([("Iron Ingot1", "Iron Rod0")], []) in
+
+          expect received |> toEqual expected);
+
+      test "Screw 90" (fun () ->
+          let model = update model (ChangePart (0, Screw)) in
+          let model = update model (ChangeQuantity (0, 90.)) in
+          let (_, nodes) = Graph.build_nodes model in
+          let received = Graph.build_edges model nodes in
+          let expected = ([("Iron Ingot2", "Iron Rod1"); ("Iron Rod1", "Screw0")], []) in
+
+          expect received |> toEqual expected);
+    )

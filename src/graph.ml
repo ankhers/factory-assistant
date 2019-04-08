@@ -13,7 +13,35 @@ let rem_prod part quantity l =
       then (p, q -. quantity)
       else (p, q)) l
 
+let rec find_nth part l =
+  let rec aux part n =
+    function
+    | (p, _, _) :: l ->
+      if p == part
+      then n
+      else aux part (n + 1) l
+    | _ -> assert false
+  in
+  aux part 0 l
 
+let build_edges model nodes =
+  let rec parent_aux (edges, logistics, nodes) (part, quantity) =
+    let parent_production = Production.find part model.production_map in
+    let n = find_nth part nodes in
+    let parent_node_name = encode_part part ^ string_of_int n in
+    let rec child_aux (edges, logistics, nodes) (part, quantity) =
+      let child_production = Production.find part model.production_map in
+      let n = find_nth part nodes in
+      let child_node_name = encode_part part ^ string_of_int n in
+      let edges = (child_node_name, parent_node_name) :: edges in
+      parent_aux (edges, logistics, nodes) (part, quantity)
+    in
+    List.fold_left child_aux (edges, logistics, nodes) parent_production.input
+  in
+  let (edges, logistics, _) =
+    List.fold_left parent_aux ([], [], nodes) model.parts
+  in
+  (edges, logistics)
 
 let build_nodes model =
   let rec aux (total_prod, nodes) (part, quantity) =
@@ -43,10 +71,8 @@ let max_conveyor_speed tier =
 let render model =
   let g = DagreD3.Graphlib.Graph.create in
   let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ()) in
-  let s = max_conveyor_speed model.tier in
+  (* let s = max_conveyor_speed model.tier in *)
   let (prod, nodes) = build_nodes model in
-  (* let _ = Js.log (List.map (fun (a,b) -> (encode_part a, b)) prod) in
-   * let _ = Js.log (List.map (fun (a,b,c) -> (encode_part a, b, c)) nodes) in *)
   (* let (_, nodes, edges, logistics) = build model s in *)
   (* let _ = make nodes edges logistics g in *)
   let svg = D3.select "svg" in
