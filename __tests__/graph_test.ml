@@ -35,7 +35,7 @@ let _ =
           let expected_nodes = [(Screw, 90., 1.); (IronRod, 15., 1.); (IronIngot, 15., 0.5)] in
           let expected = (expected_production, expected_nodes) in
 
-         expect received |> toEqual expected);
+          expect received |> toEqual expected);
 
       test "Screw 180" (fun () ->
           let model = update model (ChangePart (0, Screw)) in
@@ -84,14 +84,14 @@ let _ =
 
       test "IronIngot 30" (fun () ->
           let (_, nodes) = Graph.build_nodes model in
-          let received = Graph.build_edges model nodes in
+          let received = Graph.build_edges model (Array.of_list nodes) in
           let expected = ([], []) in
 
           expect received |> toEqual expected);
 
       test "IronIngot 60" (fun () ->
           let (_, nodes) = Graph.build_nodes model in
-          let received = Graph.build_edges model nodes in
+          let received = Graph.build_edges model (Array.of_list nodes) in
           let expected = ([], []) in
 
           expect received |> toEqual expected);
@@ -100,8 +100,17 @@ let _ =
           let model = update model (ChangePart (0, IronRod)) in
           let model = update model (ChangeQuantity (0, 15.)) in
           let (_, nodes) = Graph.build_nodes model in
-          let received = Graph.build_edges model nodes in
+          let received = Graph.build_edges model (Array.of_list nodes) in
           let expected = ([("Iron Ingot1", "Iron Rod0")], []) in
+
+          expect received |> toEqual expected);
+
+      test "IronRod 30" (fun () ->
+          let model = update model (ChangePart (0, IronRod)) in
+          let model = update model (ChangeQuantity (0, 30.)) in
+          let (_, nodes) = Graph.build_nodes model in
+          let received = Graph.build_edges model (Array.of_list nodes) in
+          let expected = ([("Splitter0", "Iron Rod0"); ("Iron Ingot2", "Splitter0"); ("Splitter0", "Iron Rod1")], [Splitter (IronIngot, 30., 2, 2)]) in
 
           expect received |> toEqual expected);
 
@@ -109,7 +118,7 @@ let _ =
           let model = update model (ChangePart (0, Screw)) in
           let model = update model (ChangeQuantity (0, 90.)) in
           let (_, nodes) = Graph.build_nodes model in
-          let received = Graph.build_edges model nodes in
+          let received = Graph.build_edges model (Array.of_list nodes) in
           let expected = ([("Iron Ingot2", "Iron Rod1"); ("Iron Rod1", "Screw0")], []) in
 
           expect received |> toEqual expected);

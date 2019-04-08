@@ -34,4 +34,3 @@ let encode_logistic =
   function
   | Splitter _ -> "Splitter"
   | Merger _ -> "Merger"
-  | Nothing -> "Nothing"
