@@ -219,3 +219,5 @@ let update model =
     let _ = render_graph model
     in
     model
+  | ChangeTier tier ->
+    { model with tier }

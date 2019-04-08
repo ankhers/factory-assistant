@@ -5,3 +5,5 @@ type msg =
   | ChangeQuantity of int * float
   | AddPart
   | RemovePart of int
+
+  | ChangeTier of int
