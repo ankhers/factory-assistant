@@ -40,17 +40,16 @@ let nth pred a =
 
 let build_edges model nodes =
   let rec parent_aux (edges, logistics, nodes) (part, quantity) =
-    let nodes_copy = Array.copy nodes in
     let parent_production = Production.find part model.production_map in
     let n = int_of_float @@ ceil @@ quantity /. parent_production.output in
     let (parent_nodes, _) = List.fold_left (fun (ns, q) _ ->
         let n = nth (fun p a _e ->
             p == part && a > 0.
-          ) nodes_copy
+          ) nodes
         in
         let ns = (encode_part part ^ string_of_int n) :: ns in
-        let (p, _a, e) = nodes_copy.(n) in
-        let _ = Array.set nodes_copy n (p, 0., e) in
+        let (p, a, e) = nodes.(n) in
+        let _ = Array.set nodes n (p, a -. quantity, e) in
         (ns, q)
       ) ([], quantity) (1 -- n)
     in
@@ -79,8 +78,8 @@ let build_edges model nodes =
                 p == part && (a == goal || m == 2. || m == 3.)
               ) nodes
             in
-            let (p, a, e) = nodes.(n) in
-            let _ = Array.set nodes n (p, 0., e) in
+            let (p, a, e) = nodes_copy.(n) in
+            let _ = Array.set nodes_copy n (p, 0., e) in
             let part_name = encode_part part ^ string_of_int n in
             let (es, ls) =
               if a == q
@@ -108,7 +107,7 @@ let build_edges model nodes =
             | _ -> assert false
         ) (edges, logistics, quantity) (1 -- n)
       in
-      parent_aux (edges, logistics, nodes_copy) (part, quantity)
+      parent_aux (edges, logistics, nodes) (part, quantity)
     in
     List.fold_left child_aux (edges, logistics, nodes) zipped
   in

@@ -122,4 +122,13 @@ let _ =
           let expected = ([("Iron Ingot2", "Iron Rod1"); ("Iron Rod1", "Screw0")], []) in
 
           expect received |> toEqual expected);
+
+      test "Screw 180" (fun () ->
+          let model = update model (ChangePart (0, Screw)) in
+          let model = update model (ChangeQuantity (0, 180.)) in
+          let (_, nodes) = Graph.build_nodes model in
+          let received = Graph.build_edges model (Array.of_list nodes) in
+          let expected = ([("Splitter0", "Iron Rod3"); ("Iron Rod3", "Screw0"); ("Iron Ingot4", "Splitter0"); ("Splitter0", "Iron Rod2"); ("Iron Rod2", "Screw1")], [Splitter (IronIngot, 30., 2, 2)]) in
+
+          expect received |> toEqual expected);
     )
