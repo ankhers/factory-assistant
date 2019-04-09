@@ -34,5 +34,14 @@ external get_float : 'a Js.t -> string -> float = "attr"
 external zoomIdentity_translate : float -> float -> 'a Js.t = "translate"
 [@@bs.module "d3"] [@@bs.scope "zoomIdentity"]
 
-external set_attr : 'a Js.t -> string -> float -> unit = "call"
+external set_attr : 'a Js.t -> string -> float -> unit = "attr"
 [@@bs.send]
+
+external node : 'a Js.t -> 'a Js.t = "node"
+[@@bs.send]
+
+external getBBox : 'a Js.t -> 'a Js.t = "getBBox"
+[@@bs.send]
+
+external width : 'a Js.t -> float = "width"
+[@@bs.get]

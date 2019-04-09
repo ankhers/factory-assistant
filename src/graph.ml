@@ -88,7 +88,9 @@ let build_edges model nodes =
               else
                 let l =
                   if a < q
-                  then Merger (part, quantity, q)
+                  then
+                    let _ = Js.log3 (encode_part p) a q in
+                    Merger (part, quantity, a)
                   else Splitter (part, a, 2, 1) in
                 let m = List.length ls in
                 let ls = List.append ls [l] in
@@ -161,7 +163,7 @@ let make nodes edges logistics graph =
   in
   ()
 
-let initial_scale = 0.75
+let initial_scale = 1.25
 
 let render model =
   let g = DagreD3.Graphlib.Graph.create in
@@ -178,14 +180,14 @@ let render model =
   let _ = D3.call svg zoom in
   let render = DagreD3.render in
   let _ = render inner g in
-  (* let svg_width = D3.get_float svg "width" in
-   * let graph_width = DagreD3.Graphlib.Graph.graph g
-   *                   |. DagreD3.Graphlib.Graph.width in
-   * let graph_height = DagreD3.Graphlib.Graph.graph g
-   *                    |. DagreD3.Graphlib.Graph.height in
-   * let one = svg_width -. graph_width *. initial_scale /. 2. in
-   * let two = 20. in
-   * let translate = D3.zoomIdentity_translate one two in
-   * let _ = D3.call3 svg (D3.transform zoom) translate in
-   * let _ = D3.set_attr svg "height" (graph_height *. initial_scale +. 40.) in *)
+  let svg_width = svg |. D3.node |. D3.getBBox |. D3.width in
+  let graph_width = DagreD3.Graphlib.Graph.graph g
+                    |. DagreD3.Graphlib.Graph.width in
+  let graph_height = DagreD3.Graphlib.Graph.graph g
+                     |. DagreD3.Graphlib.Graph.height in
+  let one = svg_width -. graph_width *. initial_scale /. 2. in
+  let two = 20. in
+  let translate = D3.zoomIdentity_translate one two in
+  let _ = D3.call3 svg (D3.transform zoom) translate in
+  let _ = D3.set_attr svg "height" (graph_height *. initial_scale +. 40.) in
   ()
