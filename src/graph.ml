@@ -64,8 +64,8 @@ let build_edges model nodes =
               | Splitter (p, i, a, c) ->
                 p == part && i /. (float_of_int a) == q && a > c
               | Merger (p, g, c) ->
-                p == part && c +. q == g
-            ) logistics
+                p == part
+            ) ls
           in
           match l with
           | None ->
@@ -84,13 +84,12 @@ let build_edges model nodes =
             let part_name = encode_part part ^ string_of_int n in
             let (es, ls) =
               if a == q
-              then ((encode_part part ^ string_of_int n, parent_node) :: es, ls)
+              then
+                ((encode_part part ^ string_of_int n, parent_node) :: es, ls)
               else
                 let l =
                   if a < q
-                  then
-                    let _ = Js.log3 (encode_part p) a q in
-                    Merger (part, quantity, a)
+                  then Merger (part, q, a)
                   else Splitter (part, a, 2, 1) in
                 let m = List.length ls in
                 let ls = List.append ls [l] in
@@ -98,6 +97,7 @@ let build_edges model nodes =
                 let es = (part_name, logistic_name) :: (logistic_name, parent_node) :: es in
                 (es, ls)
             in
+            let q = q -. a in
             (es, ls, q)
           | Some l ->
             match l with
@@ -107,7 +107,25 @@ let build_edges model nodes =
               let logistic_name = encode_logistic l ^ string_of_int ln in
               let es = (logistic_name, parent_node) :: es in
               (es, ls, q)
-            | _ -> assert false
+            | Merger (p, g, c) ->
+              let l = Merger (p, g, c +. q) in
+              let ls = change_nth ln l ls in
+              let logistic_name = encode_logistic l ^ string_of_int ln in
+              let n = nth (fun p a _e ->
+                  let goal =
+                    if child_production.output >= q
+                    then q
+                    else child_production.output
+                  in
+                  let m = a /. q in
+                  p == part && (a == goal || m == 2. || m == 3.)
+                ) nodes
+              in
+              let (p, _a, e) = nodes_copy.(n) in
+              let _ = Array.set nodes_copy n (p, 0., e) in
+              let part_name = encode_part part ^ string_of_int n in
+              let es = (part_name, logistic_name) :: es in
+              (es, ls, q)
         ) (edges, logistics, quantity) (1 -- n)
       in
       parent_aux (edges, logistics, nodes) (part, quantity)

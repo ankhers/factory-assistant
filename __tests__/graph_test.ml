@@ -144,13 +144,13 @@ let _ =
 
           expect received |> toEqual expected);
 
-      test "ModularFrame 4" (fun () ->
-          let model = update model (ChangePart (0, ModularFrame)) in
+      test "EncasedIndustrialBeam 4" (fun () ->
+          let model = update model (ChangePart (0, EncasedIndustrialBeam)) in
           let model = update model (ChangeQuantity (0, 4.)) in
           let (_, nodes) = Graph.build_nodes model in
           let received = Graph.build_edges model (Array.of_list nodes) in
-          let expected_edges = [] in
-          let expected_logistics = [] in
+          let expected_edges = [("Concrete5", "Merger1"); ("Concrete6", "Merger1"); ("Merger1", "Encased Industrial Beam0"); ("Steel Ingot4", "Steel Beam1"); ("Steel Ingot3", "Steel Beam2"); ("Steel Beam1", "Merger0"); ("Steel Beam2", "Merger0"); ("Merger0", "Encased Industrial Beam0")] in
+          let expected_logistics = [Merger (SteelBeam, 16., 16.); Merger (Concrete, 20., 20.)] in
           let expected = (expected_edges, expected_logistics) in
 
           expect received |> toEqual expected);
