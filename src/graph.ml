@@ -54,7 +54,7 @@ let build_edges model nodes =
       ) ([], quantity) (1 -- n)
     in
     let zipped = List.map (fun a -> List.map (fun b -> (a, b)) parent_production.input) parent_nodes |> List.concat in
-    let rec child_aux (edges, logistics, nodes) (parent_node, (part, quantity)) =
+    let child_aux (edges, logistics, nodes) (parent_node, (part, quantity)) =
       let nodes_copy = Array.copy nodes in
       let child_production = Production.find part model.production_map in
       let n = int_of_float @@ ceil @@ quantity /. child_production.output in
@@ -161,6 +161,8 @@ let make nodes edges logistics graph =
   in
   ()
 
+let initial_scale = 0.75
+
 let render model =
   let g = DagreD3.Graphlib.Graph.create in
   let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ()) in
@@ -170,6 +172,20 @@ let render model =
   let _ = make nodes edges logistics g in
   let svg = D3.select "svg" in
   let inner = D3.svg_select svg "g" in
+  let zoom = D3.zoom () in
+  let f = (fun () -> inner |. D3.attr "transform" D3.event_transform) in
+  let zoom = zoom |. D3.on "zoom" f in
+  let _ = D3.call svg zoom in
   let render = DagreD3.render in
   let _ = render inner g in
+  (* let svg_width = D3.get_float svg "width" in
+   * let graph_width = DagreD3.Graphlib.Graph.graph g
+   *                   |. DagreD3.Graphlib.Graph.width in
+   * let graph_height = DagreD3.Graphlib.Graph.graph g
+   *                    |. DagreD3.Graphlib.Graph.height in
+   * let one = svg_width -. graph_width *. initial_scale /. 2. in
+   * let two = 20. in
+   * let translate = D3.zoomIdentity_translate one two in
+   * let _ = D3.call3 svg (D3.transform zoom) translate in
+   * let _ = D3.set_attr svg "height" (graph_height *. initial_scale +. 40.) in *)
   ()

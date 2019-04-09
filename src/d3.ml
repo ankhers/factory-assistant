@@ -4,12 +4,35 @@ external select : string -> 'a Js.t = "select"
 external svg_select : 'a Js.t -> string -> 'a Js.t = "select"
 [@@bs.send]
 
-let initialScale = 0.75
-
 external svg_attr : 'a Js.t -> string -> float -> unit = "attr"
 [@@bs.send]
 
-(*   var initialScale = 0.75;
- * svg.call(zoom.transform, d3.zoomIdentity.translate((svg.attr("width") - g.graph().width * initialScale) / 2, 20).scale(initialScale));
- *
- * svg.attr('height', g.graph().height * initialScale + 40); *)
+external zoom : unit -> 'a Js.t = "zoom"
+[@@bs.module "d3"]
+
+external on : 'a Js.t -> string -> (unit -> 'a Js.t) -> 'a Js.t = "on"
+[@@bs.send]
+
+external attr : 'a Js.t -> string -> 'a Js.t -> 'a Js.t = "attr"
+[@@bs.send]
+
+external call : 'a Js.t -> 'a Js.t -> unit = "call"
+[@@bs.send]
+
+external call3 : 'a Js.t -> 'a Js.t -> 'a Js.t -> unit = "call"
+[@@bs.send]
+
+external event_transform : 'a Js.t = "transform"
+[@@bs.module "d3"] [@@bs.scope "event"]
+
+external transform : 'a Js.t -> 'a Js.t = "transform"
+[@@bs.get]
+
+external get_float : 'a Js.t -> string -> float = "attr"
+[@@bs.send]
+
+external zoomIdentity_translate : float -> float -> 'a Js.t = "translate"
+[@@bs.module "d3"] [@@bs.scope "zoomIdentity"]
+
+external set_attr : 'a Js.t -> string -> float -> unit = "call"
+[@@bs.send]

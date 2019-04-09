@@ -14,8 +14,14 @@ module Graphlib = struct
     external set_edge : t -> string -> string -> 'a Js.t -> unit = "setEdge"
     [@@bs.send]
 
-    external graph_height : t -> float = "graph.height"
+    external graph : t -> 'a Js.t = "graph"
     [@@bs.send]
+
+    external width : 'a Js.t -> float = "width"
+    [@@bs.get]
+
+    external height : 'a Js.t -> float = "height"
+    [@@bs.get]
   end
 end
 
