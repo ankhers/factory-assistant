@@ -63,7 +63,8 @@ let build_edges model nodes =
               match l with
               | Splitter (p, i, a, c) ->
                 p == part && i /. (float_of_int a) == q && a > c
-              | _ -> assert false
+              | Merger (p, g, c) ->
+                p == part && c +. q == g
             ) logistics
           in
           match l with
@@ -87,7 +88,7 @@ let build_edges model nodes =
               else
                 let l =
                   if a < q
-                  then Merger (part, 2, 1)
+                  then Merger (part, quantity, q)
                   else Splitter (part, a, 2, 1) in
                 let m = List.length ls in
                 let ls = List.append ls [l] in
@@ -165,8 +166,8 @@ let render model =
   let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ()) in
   (* let s = max_conveyor_speed model.tier in *)
   let (_, nodes) = build_nodes model in
-  (* let (edges, logistics) = build_edges model (Array.of_list nodes) in
-   * let _ = make nodes edges logistics g in *)
+  let (edges, logistics) = build_edges model (Array.of_list nodes) in
+  let _ = make nodes edges logistics g in
   let svg = D3.select "svg" in
   let inner = D3.svg_select svg "g" in
   let render = DagreD3.render in

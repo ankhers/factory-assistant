@@ -37,7 +37,7 @@ type logitistics =
   (* part, input, number of splits allowed, current number of splits used *)
   | Splitter of part * float * int * int
   (* part, goal number, current number *)
-  | Merger of part * int * int
+  | Merger of part * float * float
 
 (* MODEL *)
 type production =
