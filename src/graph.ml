@@ -61,8 +61,8 @@ let build_edges model nodes =
       let (edges, logistics, _) = List.fold_left (fun (es, ls, q) _ ->
           let (ln, l) = find_nth (fun l ->
               match l with
-              | Splitter (p, i, a, _c) ->
-                p == part && i /. (float_of_int a) == q
+              | Splitter (p, i, a, c) ->
+                p == part && i /. (float_of_int a) == q && a > c
               | _ -> assert false
             ) logistics
           in
