@@ -12,6 +12,7 @@ type production_building =
 type part =
   | IronIngot
   | CopperIngot
+  | SteelIngot
 
   | IronPlate
   | IronRod
@@ -28,8 +29,6 @@ type part =
   | EncasedIndustrialBeam
   | Stator
   | Motor
-
-  | SteelIngot
 
 module Production = Map.Make(struct type t = part let compare = compare end)
 

@@ -62,7 +62,7 @@ let build_edges model nodes =
     in
     let zipped = List.map (fun a -> List.map (fun b -> (a, b)) parent_production.input) parent_nodes |> List.concat in
     let child_aux (edges, logistics, nodes) ((parent_node, parent_efficiency), (part, quantity)) =
-      let quantity = parent_efficiency *. quantity in
+      let quantity = ceil @@ parent_efficiency *. quantity in
       let nodes_copy = Array.copy nodes in
       let child_production = Production.find part model.production_map in
       let n = int_of_float @@ ceil @@ quantity /. child_production.output in
@@ -208,7 +208,7 @@ let build_nodes model =
     in
     List.fold_left aux nodes inputs
   in
-  List.fold_left aux [] model.parts
+  List.sort compare @@ List.fold_left aux [] model.parts
 
 let max_conveyor_speed tier =
   if tier >= 6
@@ -243,24 +243,24 @@ let render model =
   let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ()) in
   (* let s = max_conveyor_speed model.tier in *)
   let nodes = build_nodes model in
-  let (edges, logistics) = build_edges model (Array.of_list nodes) in
-  let _ = make nodes edges logistics g in
-  let svg = D3.select "svg" in
-  let inner = D3.svg_select svg "g" in
-  let zoom = D3.zoom () in
-  let f = (fun () -> inner |. D3.attr "transform" D3.event_transform) in
-  let zoom = zoom |. D3.on "zoom" f in
-  let _ = D3.call svg zoom in
-  let render = DagreD3.render in
-  let _ = render inner g in
-  let svg_width = svg |. D3.node |. D3.getBBox |. D3.width in
-  let graph_width = DagreD3.Graphlib.Graph.graph g
-                    |. DagreD3.Graphlib.Graph.width in
-  let graph_height = DagreD3.Graphlib.Graph.graph g
-                     |. DagreD3.Graphlib.Graph.height in
-  let one = svg_width -. graph_width *. initial_scale /. 2. in
-  let two = 20. in
-  let translate = D3.zoomIdentity_translate one two in
-  let _ = D3.call3 svg (D3.transform zoom) translate in
-  let _ = D3.set_attr svg "height" (graph_height *. initial_scale +. 40.) in
+  (* let (edges, logistics) = build_edges model (Array.of_list nodes) in
+   * let _ = make nodes edges logistics g in
+   * let svg = D3.select "svg" in
+   * let inner = D3.svg_select svg "g" in
+   * let zoom = D3.zoom () in
+   * let f = (fun () -> inner |. D3.attr "transform" D3.event_transform) in
+   * let zoom = zoom |. D3.on "zoom" f in
+   * let _ = D3.call svg zoom in
+   * let render = DagreD3.render in
+   * let _ = render inner g in
+   * let svg_width = svg |. D3.node |. D3.getBBox |. D3.width in
+   * let graph_width = DagreD3.Graphlib.Graph.graph g
+   *                   |. DagreD3.Graphlib.Graph.width in
+   * let graph_height = DagreD3.Graphlib.Graph.graph g
+   *                    |. DagreD3.Graphlib.Graph.height in
+   * let one = svg_width -. graph_width *. initial_scale /. 2. in
+   * let two = 20. in
+   * let translate = D3.zoomIdentity_translate one two in
+   * let _ = D3.call3 svg (D3.transform zoom) translate in
+   * let _ = D3.set_attr svg "height" (graph_height *. initial_scale +. 40.) in *)
   ()
