@@ -34,7 +34,7 @@ module Production = Map.Make(struct type t = part let compare = compare end)
 
 type logitistics =
   (* part, input, number of splits allowed, current number of splits used *)
-  | Splitter of part * float * int * int
+  | Splitter of part * float * float * float
   (* part, goal number, current number *)
   | Merger of part * float * float
 

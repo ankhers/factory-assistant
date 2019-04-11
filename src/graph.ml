@@ -31,150 +31,107 @@ let find_nth pred l =
 
 let nth pred a =
   let rec aux n max =
-    let (p, a, e) = a.(n) in
-    if pred p a e
+    let (p, a, e, b) = a.(n) in
+    if pred p a e b
     then n
     else aux (n + 1) max
   in
   aux 0 (Array.length a - 1)
 
 let build_edges model nodes =
-  let rec parent_aux (edges, logistics, nodes) (part, quantity) =
+  let rec parent_aux (edges, logistics) (part, quantity) =
     let parent_production = Production.find part model.production_map in
-    let n = int_of_float @@ ceil @@ quantity /. parent_production.output in
+    let num_buildings = int_of_float @@ ceil @@ quantity /. parent_production.output in
     let (parent_nodes, _) = List.fold_left (fun (ns, quantity) _ ->
         let q =
           if quantity >= parent_production.output
           then parent_production.output
           else quantity
         in
-        let n = nth (fun p a _e ->
-            let m = a /. q in
-            p == part && (a == q || m == 2. || m == 3.)
+        let n = nth (fun p a _e b ->
+            p == part && a > 0. && b == q
           ) nodes
         in
         let parent_efficiency = q /. parent_production.output in
         let ns = (encode_part part ^ string_of_int n, parent_efficiency) :: ns in
-        let (p, a, e) = nodes.(n) in
-        let _ = Array.set nodes n (p, a -. quantity, e) in
+        let (p, a, e, b) = nodes.(n) in
+        let _ = Array.set nodes n (p, a -. q, e, b) in
         (ns, quantity -. q)
-      ) ([], quantity) (1 -- n)
+      ) ([], quantity) (1 -- num_buildings)
     in
-    let zipped = List.map (fun a -> List.map (fun b -> (a, b)) parent_production.input) parent_nodes |> List.concat in
-    let child_aux (edges, logistics, nodes) ((parent_node, parent_efficiency), (part, quantity)) =
-      let quantity = ceil @@ parent_efficiency *. quantity in
-      let nodes_copy = Array.copy nodes in
+    let zipped = List.map (fun a ->
+        List.map (fun b -> (a, b)) parent_production.input
+      ) parent_nodes |> List.concat in
+    let child_aux (edges, logistics) ((parent_node, parent_efficiency), (part, quantity)) =
+      let quantity = parent_efficiency *. quantity in
       let child_production = Production.find part model.production_map in
-      let n = int_of_float @@ ceil @@ quantity /. child_production.output in
-      let (edges, logistics, _) = List.fold_left (fun (es, ls, q) _ ->
+      let num_buildings = int_of_float @@ ceil @@ quantity /. child_production.output in
+      let nodes_copy = Array.copy nodes in
+      let (edges, logistics, _) = List.fold_left (fun (es, ls, quantity) _ ->
+          let q =
+            if child_production.output >= quantity
+            then quantity
+            else child_production.output
+          in
           let (ln, l) = find_nth (fun l ->
               match l with
               | Splitter (p, i, a, c) ->
-                p == part && i /. (float_of_int a) == q && a > c
+                p == part && c < a && i /. a == q
               | Merger (p, g, c) ->
-                let m = q /. 2. in
-                p == part && (c +. m == g || c +. q == g)
+                p == part && c +. q == g
             ) ls
           in
-          match l with
-          | None ->
-            let n = nth (fun p a _e ->
-                let goal =
-                  if child_production.output >= q
-                  then q
-                  else child_production.output
-                in
-                let m = a /. goal in
-                p == part && (a == goal || m == 2. || m == 3.)
-              ) nodes
-            in
-            let (p, a, e) = nodes_copy.(n) in
-            let _ = Array.set nodes_copy n (p, 0., e) in
-            let part_name = encode_part part ^ string_of_int n in
-            let (es, ls) =
-              if a == q
-              then
-                ((encode_part part ^ string_of_int n, parent_node) :: es, ls)
-              else
-                let l =
-                  if a < q
-                  then Merger (part, q, a)
-                  else Splitter (part, a, 2, 1) in
-                let m = List.length ls in
-                let ls = List.append ls [l] in
-                let logistic_name = encode_logistic l ^ string_of_int m in
-                let es = (part_name, logistic_name) :: (logistic_name, parent_node) :: es in
-                (es, ls)
-            in
-            let q = q -. a in
-            (es, ls, q)
-          | Some l ->
+          let n = nth (fun p a _e b ->
+              p == part && b == q && a > 0.
+            ) nodes_copy
+          in
+          let (p, a, e, b) = nodes_copy.(n) in
+          let _ = Array.set nodes_copy n (p, 0., e, b) in
+          let node_name = encode_part part ^ string_of_int n in
+          let (es, ls) =
             match l with
-            | Splitter (p, i, a, c) ->
-              let l = Splitter (p, i, a, c + 1) in
-              let ls = change_nth ln l ls in
-              let logistic_name = encode_logistic l ^ string_of_int ln in
+            | None ->
               let (es, ls) =
-                if (float_of_int a) == q
-                then ((logistic_name, parent_node) :: es, ls)
+                if a == quantity
+                then
+                  let es = (node_name, parent_node) :: es in
+                  (es, ls)
                 else
-                  let (n, l) = find_nth (fun l ->
-                      match l with
-                      | Splitter _ -> false
-                      | Merger (p, g, c) ->
-                        p == part && c +. q == g
-                    ) ls
+                  let l =
+                    if a < quantity
+                    then Merger (p, quantity, a)
+                    else Splitter (part, a, a /. q, 1.)
                   in
-                  match l with
-                  | None ->
-                    ((logistic_name, parent_node) :: es, ls)
-                  | Some Splitter _ -> assert false
-                  | Some Merger (p,g,c) ->
-                    let l = Merger (p, g, c +. q) in
-                    let ls = change_nth n l ls in
-                    let es = (logistic_name, encode_logistic l ^ string_of_int n) :: es in
+                  let m = List.length ls in
+                  let ls = List.append ls [l] in
+                  let logistic_name = encode_logistic l ^ string_of_int m in
+                  let es = (node_name, logistic_name) :: (logistic_name, parent_node) :: es in
                   (es, ls)
               in
-              (es, ls, (float_of_int a) -. q)
-            | Merger (p, g, c) ->
-              let l = Merger (p, g, c +. q) in
-              let ls = change_nth ln l ls in
-              let logistic_name = encode_logistic l ^ string_of_int ln in
-              let n = nth (fun p a _e ->
-                  let goal =
-                    if child_production.output >= q
-                    then q
-                    else child_production.output
-                  in
-                  let m = a /. q in
-                  p == part && (a == goal || m == 2.)
-                ) nodes
-              in
-              let (p, a, e) = nodes_copy.(n) in
-              let _ = Array.set nodes_copy n (p, 0., e) in
-              let part_name = encode_part part ^ string_of_int n in
-              let (es, ls, q) =
-                if a == q
-                then ((part_name, logistic_name) :: es, ls, 0.)
-                else
-                  let splitter = Splitter (p, a, 2, 1) in
-                  let m = List.length ls in
-                  let ls = List.append ls [splitter] in
-                  let splitter_name = encode_logistic splitter ^ string_of_int m in
-                  let es = (part_name, splitter_name) :: (splitter_name, logistic_name) :: es in
-                  (es, ls, a -. q)
-              in
-              (es, ls, q)
-        ) (edges, logistics, quantity) (1 -- n)
+              (es, ls)
+            | Some l ->
+              match l with
+              | Splitter (p, i, a, c) ->
+                let l = Splitter (p, i, a, c +. 1.) in
+                let ls = change_nth ln l ls in
+                let logistic_name = encode_logistic l ^ string_of_int ln in
+                let es = (logistic_name, parent_node) :: es in
+                (es, ls)
+              | Merger (p, g, c) ->
+                let l = Merger (p, g, c +. q) in
+                let ls = change_nth ln l ls in
+                let logistic_name = encode_logistic l ^ string_of_int ln in
+                let es = (node_name, logistic_name) :: es in
+                (es, ls)
+          in
+          (es, ls, quantity -. q)
+        ) (edges, logistics, quantity) (1 -- num_buildings)
       in
-      parent_aux (edges, logistics, nodes) (part, quantity)
+      parent_aux (edges, logistics) (part, quantity)
     in
-    List.fold_left child_aux (edges, logistics, nodes) zipped
+    List.fold_left child_aux (edges, logistics) zipped
   in
-  let (edges, logistics, _) =
-    List.fold_left parent_aux ([], [], nodes) model.parts
-  in
-  (edges, logistics)
+  List.fold_left parent_aux ([], []) model.parts
 
 let build_nodes model =
   let rec aux nodes (part, quantity) =
@@ -186,23 +143,22 @@ let build_nodes model =
           then parent_production.output
           else quantity
         in
-        let (n, elem) = find_nth (fun (p, a, _) ->
-            p == part && a +. q <= parent_production.output
-            && (a == q || a /. 2. == q)
+        let (n, elem) = find_nth (fun (p, a, _, b) ->
+            p == part && a +. q <= parent_production.output && (b == q)
           ) nodes
         in
         match elem with
         | None ->
           let e = q /. parent_production.output in
-          let nodes = (part, q, e) :: nodes in
+          let nodes = (part, q, e, q) :: nodes in
           let is = List.map (fun (p, q) -> (p, e *. q)) parent_production.input in
           (nodes, quantity -. q, List.append is inputs)
-        | Some (p, a, _) ->
+        | Some (p, a, _, b) ->
           let e = q /. parent_production.output in
           let is = List.map (fun (p, q) -> (p, e *. q)) parent_production.input in
           let a = a +. q in
           let e = a /. parent_production.output in
-          let nodes = change_nth n (p, a, e) nodes in
+          let nodes = change_nth n (p, a, e, b) nodes in
           (nodes, quantity -. q, List.append is inputs)
       ) (nodes, quantity, []) (1 -- (int_of_float number_of_buildings))
     in
@@ -218,7 +174,7 @@ let max_conveyor_speed tier =
   else 60
 
 let make nodes edges logistics graph =
-  let _ = List.mapi (fun i (p, a, _) ->
+  let _ = List.mapi (fun i (p, a, _, b) ->
       let label = encode_part p in
       let attrs = [%bs.obj { label = label ^ " " ^ Js.Float.toString a }] in
       DagreD3.Graphlib.Graph.set_node graph (label ^ string_of_int i) attrs
