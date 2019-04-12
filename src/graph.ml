@@ -135,7 +135,11 @@ let build_edges model nodes =
                     let merger_name = encode_logistic ml ^ string_of_int mn in
                     let es = (logistic_name, merger_name) :: es in
                     (es, ls)
-                  | _ -> assert false)
+                  | None ->
+                    let es = (logistic_name, parent_node) :: es in
+                    (es, ls)
+                  | _ -> assert false
+                  )
               | Merger (p, g, c) ->
                 let l = Merger (p, g, c +. q) in
                 let ls = change_nth ln l ls in
