@@ -80,7 +80,7 @@ let build_edges model nodes =
               | Splitter (p, i, a, c) ->
                 p == part && c < a && i /. a == q
               | Merger (p, g, c) ->
-                p == part && c +. q == g
+                p == part && c +. q <= g
             ) ls
           in
           let n = nth (fun p a _e b ->
