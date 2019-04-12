@@ -16,9 +16,29 @@ let view_option v = option' [ value v ] [ text v ]
 
 let number_to_locale_string: (float -> string) = [%raw fun num -> "return num.toLocaleString()"]
 
-let form_view index (part, quantity) production_map =
-  let production = Production.find part production_map
-  in
+let tier_list =
+  [ (0, [])
+  ; (1, [])
+  ; (2, [])
+  ; (3, [])
+  ; (4, [])
+  ; (5, [])
+  ; (6, [])
+  ; (7, [])
+  ; (8, [])
+  ]
+
+let tier_select =
+  div []
+    [
+      label [] [ text "Tier" ];
+      select [ class' "form-control"
+             ; onChange (fun n -> ChangeTier (int_of_string n))]
+        (List.map (fun (i, _) -> view_option (string_of_int i)) tier_list)
+    ]
+
+let form_part_view index (part, quantity) production_map tier =
+  let production = Production.find part production_map in
   div [ class' "form-row" ]
     [
       div [ class' "col" ]
@@ -28,42 +48,51 @@ let form_view index (part, quantity) production_map =
             [
               onChange (fun part -> ChangePart (index, (decode_part part)));
               id "part";
-              class' "form-control dropdown-toggle";
+              class' "form-control";
             ]
-            [
-              optgroup [ Vdom.prop "label" "Smelter" ]
-                [
-                  view_option (encode_part IronIngot);
-                  view_option (encode_part CopperIngot);
-                ];
+            (* (List.map (fun (i, list) ->
+             *      if i <= tier
+             *      then
+             *        List.map (fun part ->
+             *            view_option (encode_part part)
+             *          ) list
+             *      else
+             *        []
+             *    ) tier_list |> List.flatten); *)
+          [
+            optgroup [ Vdom.prop "label" "Smelter" ]
+              [
+                view_option (encode_part IronIngot);
+                view_option (encode_part CopperIngot);
+              ];
 
-              optgroup [ Vdom.prop "label" "Constructor" ]
-                [
-                  view_option (encode_part IronPlate);
-                  view_option (encode_part IronRod);
-                  view_option (encode_part Wire);
-                  view_option (encode_part Cable);
-                  view_option (encode_part Concrete);
-                  view_option (encode_part Screw);
-                  view_option (encode_part SteelBeam);
-                  view_option (encode_part SteelPipe);
-                ];
+            optgroup [ Vdom.prop "label" "Foundry" ]
+              [
+                view_option (encode_part SteelIngot);
+              ];
 
-              optgroup [ Vdom.prop "label" "Assembler" ]
-                [
-                  view_option (encode_part ReinforcedIronPlate);
-                  view_option (encode_part Rotor);
-                  view_option (encode_part ModularFrame);
-                  view_option (encode_part EncasedIndustrialBeam);
-                  view_option (encode_part Stator);
-                  view_option (encode_part Motor);
-                ];
+            optgroup [ Vdom.prop "label" "Constructor" ]
+              [
+                view_option (encode_part IronPlate);
+                view_option (encode_part IronRod);
+                view_option (encode_part Wire);
+                view_option (encode_part Cable);
+                view_option (encode_part Concrete);
+                view_option (encode_part Screw);
+                view_option (encode_part SteelBeam);
+                view_option (encode_part SteelPipe);
+              ];
 
-              optgroup [ Vdom.prop "label" "Foundry" ]
-                [
-                  view_option (encode_part SteelIngot);
-                ];
-            ];
+            optgroup [ Vdom.prop "label" "Assembler" ]
+              [
+                view_option (encode_part ReinforcedIronPlate);
+                view_option (encode_part Rotor);
+                view_option (encode_part ModularFrame);
+                view_option (encode_part EncasedIndustrialBeam);
+                view_option (encode_part Stator);
+                view_option (encode_part Motor);
+              ];
+          ];
         ];
       div [ class' "col" ]
         [
@@ -86,6 +115,14 @@ let form_view index (part, quantity) production_map =
           button [ class' "btn btn-danger"; onClick (RemovePart index) ] [ i [ class' "fa fa-times" ] [ ] ]
         ];
     ]
+
+let form_view model =
+  div [] [
+    tier_select;
+    div [] (List.mapi (fun i part ->
+        form_part_view i part model.production_map model.tier
+      ) model.parts)
+  ]
 
 let output_view production part number_of_buildings quantity_needed =
   let remainder = mod_float quantity_needed production.output
@@ -143,7 +180,7 @@ let view model =
   div [class' "col-lg-6 offset-lg-3"]
     [
       h1 [ class' "" ] [ text "Factory Assistant" ];
-      div [] (List.mapi (fun i part -> form_view i part model.production_map) model.parts);
+      form_view model;
       div [ class' "text-right" ]
         [
           button [
