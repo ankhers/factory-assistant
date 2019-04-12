@@ -2,7 +2,7 @@ module Graphlib = struct
   module Graph = struct
     type t
 
-    external create : t = "Graph"
+    external create : 'a Js.t -> t = "Graph"
     [@@bs.module "dagre-d3"] [@@bs.scope "graphlib"] [@@bs.new]
 
     external set_graph : t -> 'a Js.t -> unit = "setGraph"
@@ -22,6 +22,9 @@ module Graphlib = struct
 
     external height : 'a Js.t -> float = "height"
     [@@bs.get]
+
+    external set_parent : t -> string -> string -> unit = "setParent"
+    [@@bs.send]
   end
 end
 

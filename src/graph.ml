@@ -205,17 +205,32 @@ let max_conveyor_speed tier =
   then 120
   else 60
 
-let make nodes edges logistics graph =
+let make nodes edges logistics graph production_map =
+  let _ = List.map (fun b ->
+      let attrs = [%bs.obj { style = "fill: #fff" }] in
+      DagreD3.Graphlib.Graph.set_node graph (encode_building b) attrs
+    ) [Smelter; Foundry; Constructor; Assembler]
+  in
   let _ = List.mapi (fun i (p, a, _, b) ->
       let label = encode_part p in
+      let production = Production.find p production_map in
+      let building = encode_building production.building.building in
       let attrs = [%bs.obj { label = label ^ " " ^ Js.Float.toString a ^ "/" ^ Js.Float.toString b }] in
-      DagreD3.Graphlib.Graph.set_node graph (label ^ string_of_int i) attrs
+      let _ = DagreD3.Graphlib.Graph.set_node graph (label ^ string_of_int i) attrs in
+      DagreD3.Graphlib.Graph.set_parent graph (label ^ string_of_int i) building
     ) nodes
   in
   let _ = List.mapi (fun i l ->
+      let p = match l with
+        | Splitter (p, _, _, _) -> p
+        | Merger (p, _, _) -> p
+      in
       let label = encode_logistic l in
+      let production = Production.find p production_map in
+      let building = encode_building production.building.building in
       let attrs = [%bs.obj { label = label; shape = "diamond" }] in
-      DagreD3.Graphlib.Graph.set_node graph (label ^ string_of_int i) attrs
+      let _ = DagreD3.Graphlib.Graph.set_node graph (label ^ string_of_int i) attrs in
+          DagreD3.Graphlib.Graph.set_parent graph (label ^ string_of_int i) building
     ) logistics
   in
   let _ = List.map (fun (child, parent) ->
@@ -227,12 +242,12 @@ let make nodes edges logistics graph =
 let initial_scale = 1.25
 
 let render model =
-  let g = DagreD3.Graphlib.Graph.create in
+  let g = DagreD3.Graphlib.Graph.create [%bs.obj { compound = true }]in
   let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ()) in
   (* let s = max_conveyor_speed model.tier in *)
   let nodes = build_nodes model in
   let (edges, logistics) = build_edges model (Array.of_list nodes) in
-  let _ = make nodes edges logistics g in
+  let _ = make nodes edges logistics g model.production_map in
   let svg = D3.select "svg" in
   let inner = D3.svg_select svg "g" in
   let zoom = D3.zoom () in
