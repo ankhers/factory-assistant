@@ -172,16 +172,16 @@ let _ =
 
           expect received |> toEqual expected);
 
-       (* test "EncasedIndustrialBeam 8" (fun () ->
-       *     let model = update model (ChangePart (0, EncasedIndustrialBeam)) in
-       *     let model = update model (ChangeQuantity (0, 8.)) in
-       *     let nodes = Graph.build_nodes model in
-       *     let received = Graph.build_edges model (Array.of_list nodes) in
-       *     let expected_edges = [("Splitter2", "Merger4"); ("Concrete6", "Merger4"); ("Merger4", "Encased Industrial Beam11"); ("Steel Ingot3", "Steel Beam10"); ("Steel Ingot1", "Steel Beam8"); ("Steel Beam8", "Merger3"); ("Steel Beam10", "Merger3"); ("Merger3", "Encased Industrial Beam11"); ("Concrete4", "Splitter2"); ("Splitter2", "Merger1"); ("Concrete5", "Merger1"); ("Merger1", "Encased Industrial Beam12"); ("Steel Ingot2", "Steel Beam9"); ("Steel Ingot0", "Steel Beam7"); ("Steel Beam7", "Merger0"); ("Steel Beam9", "Merger0"); ("Merger0", "Encased Industrial Beam12")] in
-       *     let expected_logistics = [Merger (SteelBeam, 16., 16.); Merger (Concrete, 20., 20.); Splitter (Concrete, 10., 2, 2); Merger (SteelBeam, 16., 16.); Merger (Concrete, 20., 20.)] in
-       *     let expected = (expected_edges, expected_logistics) in
-       *
-       *     expect received |> toEqual expected); *)
+       test "EncasedIndustrialBeam 8" (fun () ->
+          let model = update model (ChangePart (0, EncasedIndustrialBeam)) in
+          let model = update model (ChangeQuantity (0, 8.)) in
+          let nodes = Graph.build_nodes model in
+          let received = Graph.build_edges model (Array.of_list nodes) in
+          let expected_edges = [("Splitter2", "Merger4"); ("Concrete6", "Merger4"); ("Merger4", "Encased Industrial Beam11"); ("Steel Ingot3", "Steel Beam10"); ("Steel Ingot1", "Steel Beam8"); ("Steel Beam8", "Merger3"); ("Steel Beam10", "Merger3"); ("Merger3", "Encased Industrial Beam11"); ("Concrete4", "Splitter2"); ("Splitter2", "Merger1"); ("Concrete5", "Merger1"); ("Merger1", "Encased Industrial Beam12"); ("Steel Ingot2", "Steel Beam9"); ("Steel Ingot0", "Steel Beam7"); ("Steel Beam7", "Merger0"); ("Steel Beam9", "Merger0"); ("Merger0", "Encased Industrial Beam12")] in
+          let expected_logistics = [Merger (SteelBeam, 16., 16.); Merger (Concrete, 20., 20.); Splitter (Concrete, 10., 2., 2.); Merger (SteelBeam, 16., 16.); Merger (Concrete, 20., 20.)] in
+          let expected = (expected_edges, expected_logistics) in
+
+          expect received |> toEqual expected);
 
       (* test "ReinforcedIronPlate 5" (fun () ->
        *     let model = update model (ChangePart (0, ReinforcedIronPlate)) in

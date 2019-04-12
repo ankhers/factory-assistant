@@ -53,10 +53,12 @@ let build_edges model nodes =
           ) nodes
         in
         let parent_efficiency = q /. parent_production.output in
-        let ns = (encode_part part ^ string_of_int n, parent_efficiency) :: ns in
+        let parent_node = (encode_part part ^ string_of_int n) in
         let (p, a, e, b) = nodes.(n) in
         let _ = Array.set nodes n (p, a -. q, e, b) in
+        let ns = (parent_node, parent_efficiency) :: ns in
         (ns, quantity -. q)
+
       ) ([], quantity) (1 -- num_buildings)
     in
     let zipped = List.map (fun a ->
@@ -115,14 +117,40 @@ let build_edges model nodes =
                 let l = Splitter (p, i, a, c +. 1.) in
                 let ls = change_nth ln l ls in
                 let logistic_name = encode_logistic l ^ string_of_int ln in
-                let es = (logistic_name, parent_node) :: es in
-                (es, ls)
+                if a == q then
+                  let es = (logistic_name, parent_node) :: es in
+                  (es, ls)
+                else
+                  let (mn, ml) = find_nth (fun l ->
+                      match l with
+                      | Merger (p, g, c) ->
+                        p == part && c +. q == g
+                      | _ -> false
+                    ) ls
+                  in
+                  (match ml with
+                  | Some Merger (p, g, c) ->
+                    let ml = Merger (p, g, c +. q) in
+                    let ls = change_nth mn ml ls in
+                    let merger_name = encode_logistic ml ^ string_of_int mn in
+                    let es = (logistic_name, merger_name) :: es in
+                    (es, ls)
+                  | _ -> assert false)
               | Merger (p, g, c) ->
                 let l = Merger (p, g, c +. q) in
                 let ls = change_nth ln l ls in
-                let logistic_name = encode_logistic l ^ string_of_int ln in
-                let es = (node_name, logistic_name) :: es in
-                (es, ls)
+                let merger_name = encode_logistic l ^ string_of_int ln in
+                if a == q
+                then
+                  let es = (node_name, merger_name) :: es in
+                  (es, ls)
+                else
+                  let splitter = Splitter (p, a, a /. q, 1.) in
+                  let m = List.length ls in
+                  let ls = List.append ls [splitter] in
+                  let splitter_name = encode_logistic splitter ^ string_of_int m in
+                  let es = (node_name, splitter_name) :: (splitter_name, merger_name) :: es in
+                  (es, ls)
           in
           (es, ls, quantity -. q)
         ) (edges, logistics, quantity) (1 -- num_buildings)
@@ -176,7 +204,7 @@ let max_conveyor_speed tier =
 let make nodes edges logistics graph =
   let _ = List.mapi (fun i (p, a, _, b) ->
       let label = encode_part p in
-      let attrs = [%bs.obj { label = label ^ " " ^ Js.Float.toString a }] in
+      let attrs = [%bs.obj { label = label ^ " " ^ Js.Float.toString a ^ "/" ^ Js.Float.toString b }] in
       DagreD3.Graphlib.Graph.set_node graph (label ^ string_of_int i) attrs
     ) nodes
   in
@@ -199,24 +227,24 @@ let render model =
   let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ()) in
   (* let s = max_conveyor_speed model.tier in *)
   let nodes = build_nodes model in
-  (* let (edges, logistics) = build_edges model (Array.of_list nodes) in
-   * let _ = make nodes edges logistics g in
-   * let svg = D3.select "svg" in
-   * let inner = D3.svg_select svg "g" in
-   * let zoom = D3.zoom () in
-   * let f = (fun () -> inner |. D3.attr "transform" D3.event_transform) in
-   * let zoom = zoom |. D3.on "zoom" f in
-   * let _ = D3.call svg zoom in
-   * let render = DagreD3.render in
-   * let _ = render inner g in
-   * let svg_width = svg |. D3.node |. D3.getBBox |. D3.width in
-   * let graph_width = DagreD3.Graphlib.Graph.graph g
-   *                   |. DagreD3.Graphlib.Graph.width in
-   * let graph_height = DagreD3.Graphlib.Graph.graph g
-   *                    |. DagreD3.Graphlib.Graph.height in
-   * let one = svg_width -. graph_width *. initial_scale /. 2. in
-   * let two = 20. in
-   * let translate = D3.zoomIdentity_translate one two in
-   * let _ = D3.call3 svg (D3.transform zoom) translate in
-   * let _ = D3.set_attr svg "height" (graph_height *. initial_scale +. 40.) in *)
+  let (edges, logistics) = build_edges model (Array.of_list nodes) in
+  let _ = make nodes edges logistics g in
+  let svg = D3.select "svg" in
+  let inner = D3.svg_select svg "g" in
+  let zoom = D3.zoom () in
+  let f = (fun () -> inner |. D3.attr "transform" D3.event_transform) in
+  let zoom = zoom |. D3.on "zoom" f in
+  let _ = D3.call svg zoom in
+  let render = DagreD3.render in
+  let _ = render inner g in
+  let svg_width = svg |. D3.node |. D3.getBBox |. D3.width in
+  let graph_width = DagreD3.Graphlib.Graph.graph g
+                    |. DagreD3.Graphlib.Graph.width in
+  let graph_height = DagreD3.Graphlib.Graph.graph g
+                     |. DagreD3.Graphlib.Graph.height in
+  let one = svg_width -. graph_width *. initial_scale /. 2. in
+  let two = 20. in
+  let translate = D3.zoomIdentity_translate one two in
+  let _ = D3.call3 svg (D3.transform zoom) translate in
+  let _ = D3.set_attr svg "height" (graph_height *. initial_scale +. 40.) in
   ()
