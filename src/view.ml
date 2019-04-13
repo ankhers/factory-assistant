@@ -96,7 +96,7 @@ let form_part_view index (part, quantity) production_map =
             [
               onInput (fun s -> ChangeQuantity (index, (float_of_string s)));
               id "quantity";
-              type' "number";
+              type' "text";
               value (Js.Float.toString quantity);
               class' "form-control"
             ] [];
@@ -182,8 +182,5 @@ let view model =
             onClick AddPart;
           ] [ i [ class' "fa fa-plus" ] [] ]
         ];
-      energy_consumption_view model;
-      div []
-        (intersperse (List.map (fun part -> calculation_view part model.production_map) model.parts) (hr [] []));
-      (* calculation_view model.part model.number model.production_map; *)
+      (* energy_consumption_view model; *)
     ]
