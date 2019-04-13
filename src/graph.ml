@@ -249,8 +249,8 @@ let make nodes edges logistics graph production_map =
 let initial_scale = 1.25
 
 let render model =
-  let g = DagreD3.Graphlib.Graph.create [%bs.obj { compound = true }]in
-  let _ = DagreD3.Graphlib.Graph.set_graph g (Js.Obj.empty ()) in
+  let g = DagreD3.Graphlib.Graph.create [%bs.obj { compound = true }] in
+  let _ = DagreD3.Graphlib.Graph.set_graph g [%bs.obj { rankdir = "LR" }] in
   (* let s = max_conveyor_speed model.tier in *)
   let nodes = build_nodes model in
   let (edges, logistics) = build_edges model (Array.of_list nodes) in
