@@ -209,7 +209,7 @@ let make nodes edges logistics graph production_map =
   let _ = List.map (fun b ->
       let attrs = [%bs.obj { style = "fill: #fff" }] in
       DagreD3.Graphlib.Graph.set_node graph (encode_building b) attrs
-    ) [Smelter; Foundry; Constructor; Assembler]
+    ) [Smelter; Foundry; Constructor; Assembler; OilRefinery; Manufacturer]
   in
   let _ = List.mapi (fun i (p, a, _, b) ->
       let label = encode_part p in

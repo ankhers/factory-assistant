@@ -91,7 +91,20 @@ let form_part_view index (part, quantity) production_map tier =
                 view_option (encode_part EncasedIndustrialBeam);
                 view_option (encode_part Stator);
                 view_option (encode_part Motor);
+                view_option (encode_part CircuitBoard);
               ];
+
+            optgroup [ Vdom.prop "label" "Oil Refinery" ]
+              [
+                view_option (encode_part Plastic);
+                view_option (encode_part Rubber);
+              ];
+
+            optgroup [ Vdom.prop "label" "Manufacturer" ]
+              [
+                view_option (encode_part HeavyModularFrame);
+                view_option (encode_part Computer);
+              ]
           ];
         ];
       div [ class' "col" ]

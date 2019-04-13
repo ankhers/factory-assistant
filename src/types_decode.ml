@@ -5,6 +5,8 @@ let decode_part =
   | "Iron Ingot" -> IronIngot
   | "Copper Ingot" -> CopperIngot
 
+  | "Steel Ingot" -> SteelIngot
+
   | "Iron Plate" -> IronPlate
   | "Iron Rod" -> IronRod
   | "Wire" -> Wire
@@ -20,7 +22,12 @@ let decode_part =
   | "Encased Industrial Beam" -> EncasedIndustrialBeam
   | "Stator" -> Stator
   | "Motor" -> Motor
+  | "Circuit Board" -> CircuitBoard
 
-  | "Steel Ingot" -> SteelIngot
+  | "Plastic" -> Plastic
+  | "Rubber" -> Rubber
+
+  | "Heavy Modular Frame" -> HeavyModularFrame
+  | "Computer" -> Computer
 
   | _ -> assert false

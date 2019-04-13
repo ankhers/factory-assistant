@@ -5,6 +5,8 @@ let encode_part =
   | IronIngot -> "Iron Ingot"
   | CopperIngot -> "Copper Ingot"
 
+  | SteelIngot -> "Steel Ingot"
+
   | IronPlate -> "Iron Plate"
   | IronRod -> "Iron Rod"
   | Wire -> "Wire"
@@ -20,8 +22,13 @@ let encode_part =
   | EncasedIndustrialBeam -> "Encased Industrial Beam"
   | Stator -> "Stator"
   | Motor -> "Motor"
+  | CircuitBoard -> "Circuit Board"
 
-  | SteelIngot -> "Steel Ingot"
+  | Plastic -> "Plastic"
+  | Rubber -> "Rubber"
+
+  | HeavyModularFrame -> "Heavy Modular Frame"
+  | Computer -> "Computer"
 
 let encode_building =
   function
@@ -29,6 +36,8 @@ let encode_building =
   | Constructor -> "Constructor"
   | Assembler -> "Assembler"
   | Foundry -> "Foundry"
+  | OilRefinery -> "Oil Refinery"
+  | Manufacturer -> "Manufacturer"
 
 let encode_logistic =
   function
