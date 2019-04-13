@@ -218,11 +218,11 @@ let make nodes edges logistics graph production_map =
       DagreD3.Graphlib.Graph.set_node graph (cluster_of_building b) attrs
     ) [Smelter; Constructor; Assembler; Manufacturer]
   in
-  let _ = List.mapi (fun i (p, a, _, b) ->
+  let _ = List.mapi (fun i (p, _a, e, _b) ->
       let label = encode_part p in
       let production = Production.find p production_map in
       let building = cluster_of_building production.building.building in
-      let attrs = [%bs.obj { label = label ^ " " ^ Js.Float.toString a ^ "/" ^ Js.Float.toString b }] in
+      let attrs = [%bs.obj { label = label ^ " " ^ (Js.Float.toString @@  ceil @@ e *. 100.) ^ "%" }] in
       let _ = DagreD3.Graphlib.Graph.set_node graph (label ^ string_of_int i) attrs in
       DagreD3.Graphlib.Graph.set_parent graph (label ^ string_of_int i) building
     ) nodes
