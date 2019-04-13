@@ -96,7 +96,7 @@ let build_edges model nodes =
               let (es, ls) =
                 if a == quantity
                 then
-                  let es = (node_name, parent_node) :: es in
+                  let es = (node_name, parent_node, p) :: es in
                   (es, ls)
                 else
                   let l =
@@ -107,7 +107,7 @@ let build_edges model nodes =
                   let m = List.length ls in
                   let ls = List.append ls [l] in
                   let logistic_name = encode_logistic l ^ string_of_int m in
-                  let es = (node_name, logistic_name) :: (logistic_name, parent_node) :: es in
+                  let es = (node_name, logistic_name, p) :: (logistic_name, parent_node, p) :: es in
                   (es, ls)
               in
               (es, ls)
@@ -118,7 +118,7 @@ let build_edges model nodes =
                 let ls = change_nth ln l ls in
                 let logistic_name = encode_logistic l ^ string_of_int ln in
                 if a == q then
-                  let es = (logistic_name, parent_node) :: es in
+                  let es = (logistic_name, parent_node, p) :: es in
                   (es, ls)
                 else
                   let (mn, ml) = find_nth (fun l ->
@@ -133,10 +133,10 @@ let build_edges model nodes =
                     let ml = Merger (p, g, c +. q) in
                     let ls = change_nth mn ml ls in
                     let merger_name = encode_logistic ml ^ string_of_int mn in
-                    let es = (logistic_name, merger_name) :: es in
+                    let es = (logistic_name, merger_name, p) :: es in
                     (es, ls)
                   | None ->
-                    let es = (logistic_name, parent_node) :: es in
+                    let es = (logistic_name, parent_node, p) :: es in
                     (es, ls)
                   | _ -> assert false
                   )
@@ -146,14 +146,14 @@ let build_edges model nodes =
                 let merger_name = encode_logistic l ^ string_of_int ln in
                 if a == q
                 then
-                  let es = (node_name, merger_name) :: es in
+                  let es = (node_name, merger_name, p) :: es in
                   (es, ls)
                 else
                   let splitter = Splitter (p, a, a /. q, 1.) in
                   let m = List.length ls in
                   let ls = List.append ls [splitter] in
                   let splitter_name = encode_logistic splitter ^ string_of_int m in
-                  let es = (node_name, splitter_name) :: (splitter_name, merger_name) :: es in
+                  let es = (node_name, splitter_name, p) :: (splitter_name, merger_name, p) :: es in
                   (es, ls)
           in
           (es, ls, quantity -. q)
@@ -212,6 +212,36 @@ let cluster_of_building =
   | OilRefinery -> "Raw"
   | b -> encode_building b
 
+let class_of_part =
+  function
+  | IronIngot -> "iron-ingot"
+  | CopperIngot -> "copper-ingot"
+
+  | SteelIngot -> "steel-ingot"
+
+  | IronPlate -> "iron-plate"
+  | IronRod -> "Iron-rod"
+  | Wire -> "wire"
+  | Cable -> "cable"
+  | Concrete -> "concrete"
+  | Screw -> "screw"
+  | SteelBeam -> "steel-beam"
+  | SteelPipe -> "steel-pipe"
+
+  | ReinforcedIronPlate -> "reinforced-iron-plate"
+  | Rotor -> "rotor"
+  | ModularFrame -> "modular-frame"
+  | EncasedIndustrialBeam -> "encased-industrial-beam"
+  | Stator -> "stator"
+  | Motor -> "motor"
+  | CircuitBoard -> "circuit-board"
+
+  | Plastic -> "plastic"
+  | Rubber -> "rubber"
+
+  | HeavyModularFrame -> "heavy-modular-frame"
+  | Computer -> "Computer"
+
 let make nodes edges logistics graph production_map =
   let _ = List.map (fun b ->
       let attrs = [%bs.obj { style = "fill: #fff" }] in
@@ -240,8 +270,9 @@ let make nodes edges logistics graph production_map =
           DagreD3.Graphlib.Graph.set_parent graph (label ^ string_of_int i) building
     ) logistics
   in
-  let _ = List.map (fun (child, parent) ->
-      DagreD3.Graphlib.Graph.set_edge graph child parent (Js.Obj.empty ())
+  let _ = List.map (fun (child, parent, part) ->
+      let attrs = [%bs.obj { _class = class_of_part part }] in
+      DagreD3.Graphlib.Graph.set_edge graph child parent attrs
     ) edges
   in
   ()
