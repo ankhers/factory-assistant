@@ -60,5 +60,3 @@ let update model =
     let _ = Graph.render model
     in
     model
-  | ChangeTier tier ->
-    { model with tier }

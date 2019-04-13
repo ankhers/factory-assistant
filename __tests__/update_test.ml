@@ -34,12 +34,6 @@ let _ =
            let expected = [] in
 
            expect received.parts |> toEqual expected);
-
-       test "ChangeTier" (fun () ->
-           let received = update model (ChangeTier 15) in
-           let expected = 15 in
-
-           expect received.tier |> toEqual expected);
     )
 
 let _ =

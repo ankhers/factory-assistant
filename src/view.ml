@@ -28,16 +28,7 @@ let tier_list =
   ; (8, [])
   ]
 
-let tier_select =
-  div []
-    [
-      label [] [ text "Tier" ];
-      select [ class' "form-control"
-             ; onChange (fun n -> ChangeTier (int_of_string n))]
-        (List.map (fun (i, _) -> view_option (string_of_int i)) tier_list)
-    ]
-
-let form_part_view index (part, quantity) production_map tier =
+let form_part_view index (part, quantity) production_map =
   let production = Production.find part production_map in
   div [ class' "form-row" ]
     [
@@ -50,15 +41,6 @@ let form_part_view index (part, quantity) production_map tier =
               id "part";
               class' "form-control";
             ]
-            (* (List.map (fun (i, list) ->
-             *      if i <= tier
-             *      then
-             *        List.map (fun part ->
-             *            view_option (encode_part part)
-             *          ) list
-             *      else
-             *        []
-             *    ) tier_list |> List.flatten); *)
           [
             optgroup [ Vdom.prop "label" "Smelter" ]
               [
@@ -131,9 +113,8 @@ let form_part_view index (part, quantity) production_map tier =
 
 let form_view model =
   div [] [
-    tier_select;
     div [] (List.mapi (fun i part ->
-        form_part_view i part model.production_map model.tier
+        form_part_view i part model.production_map
       ) model.parts)
   ]
 
