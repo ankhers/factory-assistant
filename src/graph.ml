@@ -205,16 +205,23 @@ let max_conveyor_speed tier =
   then 120
   else 60
 
+let cluster_of_building =
+  function
+  | Smelter -> "Raw"
+  | Foundry -> "Raw"
+  | OilRefinery -> "Raw"
+  | b -> encode_building b
+
 let make nodes edges logistics graph production_map =
   let _ = List.map (fun b ->
       let attrs = [%bs.obj { style = "fill: #fff" }] in
-      DagreD3.Graphlib.Graph.set_node graph (encode_building b) attrs
-    ) [Smelter; Foundry; Constructor; Assembler; OilRefinery; Manufacturer]
+      DagreD3.Graphlib.Graph.set_node graph (cluster_of_building b) attrs
+    ) [Smelter; Constructor; Assembler; Manufacturer]
   in
   let _ = List.mapi (fun i (p, a, _, b) ->
       let label = encode_part p in
       let production = Production.find p production_map in
-      let building = encode_building production.building.building in
+      let building = cluster_of_building production.building.building in
       let attrs = [%bs.obj { label = label ^ " " ^ Js.Float.toString a ^ "/" ^ Js.Float.toString b }] in
       let _ = DagreD3.Graphlib.Graph.set_node graph (label ^ string_of_int i) attrs in
       DagreD3.Graphlib.Graph.set_parent graph (label ^ string_of_int i) building
@@ -227,7 +234,7 @@ let make nodes edges logistics graph production_map =
       in
       let label = encode_logistic l in
       let production = Production.find p production_map in
-      let building = encode_building production.building.building in
+      let building = cluster_of_building production.building.building in
       let attrs = [%bs.obj { label = label; shape = "diamond" }] in
       let _ = DagreD3.Graphlib.Graph.set_node graph (label ^ string_of_int i) attrs in
           DagreD3.Graphlib.Graph.set_parent graph (label ^ string_of_int i) building
