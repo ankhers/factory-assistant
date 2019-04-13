@@ -176,7 +176,8 @@ let build_nodes model =
           else quantity
         in
         let (n, elem) = find_nth (fun (p, a, _, b) ->
-            p == part && a +. q <= parent_production.output && (b == q)
+            let m = a +. q in
+            p == part && m <= parent_production.output && b == q && b *. 3. >= m
           ) nodes
         in
         match elem with
